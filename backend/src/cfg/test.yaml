@@ -1,0 +1,29 @@
+# 测试配置
+database:
+  host: 127.0.0.1
+  port: 5432
+  username: test_user
+  password: test_pass
+
+server:
+  endpoint: /api/v1
+  timeout: 30
+
+features:
+  logging: true
+  debug_mode: false
+
+modules:
+  - auth
+  - users
+  - orders
+
+modules1:
+  - core
+  - auth
+  - utils:
+      - validation
+      - formatting
+  - plugins:
+      - plugin1
+      - plugin2
