@@ -10,6 +10,7 @@ venv/
 # Build
 build/
 dist/
+src/__pycache__/
 __pycache__/
 
 # IDE
