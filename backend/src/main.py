@@ -1,10 +1,43 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocketDisconnect, WebSocket
+from contextlib import asynccontextmanager
 import socket
 import yaml
 from pathlib import Path
 from dataclasses import dataclass
+from .connection_manager import connection_manager
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 启动之前的工作
+    initConfig()
+    yield
+    # 结束后的工作
+    print("应用关闭")
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: int):
+    await connection_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await connection_manager.send_personal_message(
+                f"You wrote: {data}", websocket
+            )
+            await connection_manager.broadcast(f"Client #{client_id} says: {data}")
+    except WebSocketDisconnect:
+        connection_manager.disconnect(websocket)
+        await connection_manager.broadcast(f"Client #{client_id} left the chat")
+
 
 @dataclass
 class DatabaseConfig:
@@ -13,10 +46,12 @@ class DatabaseConfig:
     username: str
     password: str
 
+
 @dataclass
 class ServerConfig:
     endpoint: str
     timeout: int
+
 
 @dataclass
 class AppConfig:
@@ -25,21 +60,23 @@ class AppConfig:
     features: dict
     modules: list
 
+
 def load_config():
-    config_path = Path(__file__).parent / 'cfg' / 'test.yaml'
+    config_path = Path(__file__).parent / "cfg" / "test.yaml"
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config_data = yaml.safe_load(f)
             print("完整配置:\n", config_data)
             return AppConfig(
-                database=DatabaseConfig(**config_data['database']),
-                server=ServerConfig(**config_data['server']),
-                features=config_data['features'],
-                modules=config_data['modules']
+                database=DatabaseConfig(**config_data["database"]),
+                server=ServerConfig(**config_data["server"]),
+                features=config_data["features"],
+                modules=config_data["modules"],
             )
     except Exception as e:
         print(f"配置加载错误: {str(e)}")
         raise
+
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -53,16 +90,12 @@ def get_local_ip():
         s.close()
     return ip
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
-@app.on_event("startup")
-async def startup_event():
+def initConfig():
     # 加载配置
     config = load_config()
     print("成功加载配置:\n", config)
-    
+
     # 获取并打印IP地址
     ip = get_local_ip()
     port = 8000  # 确保与启动命令中的端口一致
