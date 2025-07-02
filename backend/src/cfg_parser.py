@@ -35,8 +35,8 @@ class LabConfig:
     main_rounds: List[MainRoundConfig]
 
 
-def load_corps_fight_config(config_path: str = None) -> LabConfig:
-    """加载并解析军团战斗配置文件
+def load_lab_config(config_path: str = None) -> LabConfig:
+    """加载并解析实验配置文件
     
     Args:
         config_path: 配置文件路径，默认为项目根目录下的cfg/corpsFight.yml
@@ -63,4 +63,4 @@ def load_corps_fight_config(config_path: str = None) -> LabConfig:
     return LabConfig(**config_data)
 
 
-__all__ = ['LabConfig', 'load_corps_fight_config']
+__all__ = ['LabConfig', 'load_lab_config']

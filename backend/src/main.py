@@ -26,7 +26,7 @@ class AppConfig:
     modules: list
 
 def load_config():
-    config_path = Path(__file__).parent.parent / 'cfg' / 'test.yaml'
+    config_path = Path(__file__).parent / 'cfg' / 'test.yaml'
     try:
         with open(config_path, 'r') as f:
             config_data = yaml.safe_load(f)
