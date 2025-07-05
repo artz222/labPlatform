@@ -6,7 +6,9 @@ plugins {
 android {
     namespace = "com.jasper.labplatform"
     compileSdk = 35
-
+    buildFeatures {
+        viewBinding = true
+    }
     defaultConfig {
         applicationId = "com.jasper.labplatform"
         minSdk = 24
@@ -38,12 +40,15 @@ android {
 dependencies {
     implementation(libs.gson)
     implementation(libs.java.websocket)
+    implementation(libs.multitype)
+    implementation(libs.smarttable) // 表格库，暂未用到
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

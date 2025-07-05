@@ -1,4 +1,4 @@
-package com.jasper.labplatform.websockets
+package com.jasper.labplatform.websocket
 
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
