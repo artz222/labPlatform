@@ -1,23 +1,24 @@
 package com.jasper.labplatform.websocket
 
+import android.util.Log
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
-class LabWebSocketClient(uri: URI) : WebSocketClient(uri) {
+open class LabWebSocketClient(uri: URI) : WebSocketClient(uri) {
     override fun onOpen(handshakedata: ServerHandshake?) {
-        TODO("Not yet implemented")
+        Log.d("WebSocket", "Connection opened")
     }
 
     override fun onMessage(message: String?) {
-        TODO("Not yet implemented")
+        Log.d("WebSocket", "Received message: $message")
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
-        TODO("Not yet implemented")
+        Log.d("WebSocket", "Connection closed")
     }
 
     override fun onError(ex: Exception?) {
-        TODO("Not yet implemented")
+        Log.e("WebSocket", "Error: ${ex?.message}")
     }
 }

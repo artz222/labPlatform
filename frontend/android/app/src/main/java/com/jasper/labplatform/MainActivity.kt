@@ -1,6 +1,7 @@
 package com.jasper.labplatform
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -21,6 +22,8 @@ import com.jasper.labplatform.viewbinder.InfoItemViewBinder
 import com.jasper.labplatform.viewbinder.RadioGroupItemViewBinder
 import com.jasper.labplatform.viewbinder.TitleItemViewBinder
 import com.jasper.labplatform.websocket.LabWebSocketClient
+import org.java_websocket.handshake.ServerHandshake
+import java.net.URI
 
 
 class MainActivity : AppCompatActivity() {
@@ -46,9 +49,35 @@ class MainActivity : AppCompatActivity() {
         if (Repository.baseIP == null) {
             showIpInputDialog(this) { ip ->
                 Repository.baseIP = ip
-                initView()
+                tryConnectWebsocket()
             }
-        } else initView()
+        } else {
+            tryConnectWebsocket()
+//            initView()
+        }
+    }
+
+    private fun tryConnectWebsocket() {
+        val url = "ws://${Repository.baseIP}:8000/ws"
+        Log.d("WebSocket", "Trying to connect to: $url")
+        labWebSocketClient =
+            object : LabWebSocketClient(URI(url)) {
+                override fun onOpen(handshakedata: ServerHandshake?) {
+                    super.onOpen(handshakedata)
+                    send("Hello, server!")
+                }
+
+                override fun onMessage(message: String?) {
+                    super.onMessage(message)
+
+
+                }
+            }
+        try {
+            labWebSocketClient.connect()
+        } catch (e: Exception) {
+            Log.e("WebSocket", "Error connecting to WebSocket server: ${e.message}")
+        }
     }
 
     private fun initView() {

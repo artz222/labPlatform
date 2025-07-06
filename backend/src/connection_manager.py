@@ -1,4 +1,5 @@
 from fastapi import WebSocket
+import typing
 
 
 class ConnectionManager:
@@ -14,6 +15,9 @@ class ConnectionManager:
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
+
+    async def send_json(self, message: typing.Any, websocket: WebSocket):
+        await websocket.send_json(message)
 
     async def broadcast(self, message: str):
         for connection in self.active_connections:
