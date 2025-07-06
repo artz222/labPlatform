@@ -41,6 +41,10 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.java.websocket)
     implementation(libs.multitype)
+    implementation(libs.glide)
+    implementation(libs.photoview)
+//    implementation("com.github.xiaogegexiao:rxbonjour:1.0.8")
+    implementation("com.github.Ennova-IT:ZeRXconf:1.0.3")
     implementation(libs.smarttable) // 表格库，暂未用到
 
     implementation(libs.androidx.core.ktx)

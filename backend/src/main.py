@@ -19,9 +19,45 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+from fastapi.responses import FileResponse
+from fastapi import HTTPException
+from pathlib import Path
+
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@app.get("/images/{image_name}")
+async def get_image(image_name: str):
+    # 构建图片文件的绝对路径
+    assets_dir = Path(__file__).parent.parent / "assets"
+    image_path = assets_dir / image_name
+
+    # 检查文件是否存在
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="图片文件不存在")
+
+    # 检查是否是文件
+    if not image_path.is_file():
+        raise HTTPException(status_code=400, detail="路径不是有效的文件")
+
+    # 确定媒体类型
+    ext = image_name.lower().split(".")[-1]
+    media_types = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "svg": "image/svg+xml",
+    }
+
+    media_type = media_types.get(ext)
+    if not media_type:
+        raise HTTPException(status_code=400, detail=f"不支持的图片格式: {ext}")
+
+    return FileResponse(str(image_path), media_type=media_type)
 
 
 @app.websocket("/ws/{client_id}")

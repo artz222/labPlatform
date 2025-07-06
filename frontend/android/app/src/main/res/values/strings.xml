@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">labPlatform</string>
     <string name="submit">提交</string>
+    <string name="image_close_btn">图片关闭按钮</string>
 </resources>
