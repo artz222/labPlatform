@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewBinder
-import com.jasper.labplatform.ext.dpToPx
-import com.jasper.labplatform.model.Empty
+import com.jasper.labplatform.utils.ext.dpToPx
+import com.jasper.labplatform.repository.model.Empty
 
 class EmptyItemViewBinder : ItemViewBinder<Empty, EmptyItemViewBinder.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

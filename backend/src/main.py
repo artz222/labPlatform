@@ -1,11 +1,13 @@
-from fastapi import FastAPI, WebSocketDisconnect, WebSocket
+from fastapi import FastAPI, WebSocketDisconnect, WebSocket, HTTPException
+from fastapi.responses import HTMLResponse, FileResponse
 from contextlib import asynccontextmanager
 import socket
+from pydantic_core import to_json
 import yaml
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from .connection_manager import connection_manager
-from fastapi.responses import HTMLResponse
+from .model.message import SocketMessage, ExperimentInfo, Info, Image, Options
 
 
 @asynccontextmanager
@@ -20,49 +22,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-from fastapi.responses import FileResponse
-from fastapi import HTTPException
-from pathlib import Path
-
-# 测试websockets连接是否正常
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Chat</title>
-    </head>
-    <body>
-        <h1>WebSocket Chat</h1>
-        <form action="" onsubmit="sendMessage(event)">
-            <input type="text" id="messageText" autocomplete="off"/>
-            <button>Send</button>
-        </form>
-        <ul id='messages'>
-        </ul>
-        <script>
-            var ws = new WebSocket("ws://localhost:8000/ws");
-            ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
-            };
-            function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
-            }
-        </script>
-    </body>
-</html>
-"""
-
-
 @app.get("/")
 async def root():
-    return HTMLResponse(html)
+    with open("./test/websocket_test.html", "r", encoding="utf-8") as f:
+        html_content = f.read()
+    return HTMLResponse(html_content)
 
 
 @app.get("/images/{image_name}")
@@ -95,14 +59,6 @@ async def get_image(image_name: str):
 
     return FileResponse(str(image_path), media_type=media_type)
 
-testjson = """
-{
-    "action": "test",
-    "params": {
-        "test": "test"
-    }
-}
-"""
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -110,8 +66,23 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            await connection_manager.send_json(testjson, websocket)
-            await connection_manager.broadcast(f"Client says: {data}")
+
+            socketMessage = SocketMessage(
+                cmd="UPDATE_EXPERIMENT_INFO",
+                data=ExperimentInfo(
+                    infos=[
+                        Info(hint="实验轮数", value="1/6"),
+                        Info(hint="当前回合数", value="2/20"),
+                        Info(hint="当前实验", value="实验1"),
+                        Info(hint="当前实验", value="实验1"),
+                        Info(hint="当前实验", value="实验1"),
+                    ],
+                    image=Image(imageUrl="http://192.168.31.88:8000/images/1.png"),
+                    options=Options(options=["购买", "购买", "购买不购买"]),
+                ).model_dump_json(),
+            )
+            await connection_manager.send_json(socketMessage.model_dump(), websocket)
+            # await connection_manager.broadcast(f"Client says: {data}")
     except WebSocketDisconnect:
         connection_manager.disconnect(websocket)
         await connection_manager.broadcast(f"Client left the chat")

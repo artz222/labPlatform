@@ -1,4 +1,4 @@
-package com.jasper.labplatform.ext
+package com.jasper.labplatform.utils.ext
 
 import android.content.res.Resources
 import android.util.TypedValue

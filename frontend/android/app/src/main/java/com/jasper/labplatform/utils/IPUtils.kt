@@ -12,9 +12,9 @@ fun showIpInputDialog(context: Context, onSuccess: (ip: String) -> Unit) {
     val ipEditText = dialogView.findViewById<EditText>(R.id.ip_edit_text)
 
     MaterialAlertDialogBuilder(context)
-        .setTitle("Connect to Server")
+        .setTitle("连接到实验平台")
         .setView(dialogView) // Set the custom view
-        .setPositiveButton("Submit") { dialog, which ->
+        .setPositiveButton("确认") { dialog, which ->
             val enteredIp = ipEditText.text.toString()
             if (isValidIpAddress(enteredIp)) {
                 Log.i("IpDialog", "Submitted IP Address: $enteredIp")
@@ -27,9 +27,9 @@ fun showIpInputDialog(context: Context, onSuccess: (ip: String) -> Unit) {
                 // you might need to override the button's OnClickListener after the dialog is shown.
             }
         }
-        .setNegativeButton("Cancel") { dialog, which ->
-            dialog.dismiss()
-        }
+//        .setNegativeButton("取消") { dialog, which ->
+//            dialog.dismiss()
+//        }
         .setCancelable(false) // Optional: Prevent dismissing by tapping outside or back press
         .show()
 }

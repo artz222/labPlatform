@@ -7,9 +7,9 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.drakeet.multitype.ItemViewBinder
-import com.jasper.labplatform.ext.dpToPx
-import com.jasper.labplatform.fragments.ImageZoomDialogFragment
-import com.jasper.labplatform.model.Image
+import com.jasper.labplatform.utils.ext.dpToPx
+import com.jasper.labplatform.view.ImageZoomDialogFragment
+import com.jasper.labplatform.repository.model.Image
 
 class ImageItemViewBinder : ItemViewBinder<Image, ImageItemViewBinder.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

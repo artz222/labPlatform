@@ -1,4 +1,4 @@
-package com.jasper.labplatform.fragments // Use your actual package name
+package com.jasper.labplatform.view
 
 import android.graphics.Color
 import android.os.Bundle

@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewBinder
 import com.jasper.labplatform.R
-import com.jasper.labplatform.model.Info
+import com.jasper.labplatform.repository.model.Info
 
 class InfoItemViewBinder : ItemViewBinder<Info, InfoItemViewBinder.ViewHolder>() {
 

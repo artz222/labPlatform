@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewBinder
 import com.google.android.material.snackbar.Snackbar
 import com.jasper.labplatform.R
-import com.jasper.labplatform.model.Options
+import com.jasper.labplatform.repository.model.Options
 
 class RadioGroupItemViewBinder : ItemViewBinder<Options, RadioGroupItemViewBinder.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

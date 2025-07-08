@@ -8,7 +8,7 @@ import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewBinder
 import com.jasper.labplatform.R
-import com.jasper.labplatform.model.Title
+import com.jasper.labplatform.repository.model.Title
 
 class TitleItemViewBinder : ItemViewBinder<Title, TitleItemViewBinder.ViewHolder>() {
 
