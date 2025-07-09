@@ -1,14 +1,17 @@
 package com.jasper.labplatform.view
 
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.ImageButton
+import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import com.bumptech.glide.Glide
 import com.github.chrisbanes.photoview.PhotoView
@@ -51,6 +54,7 @@ class ImageZoomDialogFragment : DialogFragment() {
         return view
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -77,12 +81,13 @@ class ImageZoomDialogFragment : DialogFragment() {
         closeButton.setOnClickListener {
             dismiss()
         }
-
-        // Optional: Allow PhotoView to handle pinch-to-zoom over the entire dialog area
-        // This might be useful if the PhotoView doesn't fill the entire dialog initially
-        // photoView.setAllowParentInterceptOnEdge(true);
+        // 隐藏导航栏
+        dialog?.window?.let {
+            hideNavBar(it)
+        }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onStart() {
         super.onStart()
         // Make the dialog full-screen
@@ -91,4 +96,9 @@ class ImageZoomDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT
         )
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+fun hideNavBar(window: Window) {
+    window.insetsController?.hide(WindowInsetsCompat.Type.navigationBars())
 }
