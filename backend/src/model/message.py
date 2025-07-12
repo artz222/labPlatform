@@ -1,8 +1,17 @@
+from enum import StrEnum
 from pydantic import BaseModel
 
 
+class CMD(StrEnum):
+    """客户端交互命令枚举类"""
+
+    UPDATE_EXPERIMENT_INFO = "UPDATE_EXPERIMENT_INFO"
+    CONNECT = "CONNECT"
+    SUBMIT_DESITION = "SUBMIT_DESITION"
+
+
 class SocketMessage(BaseModel):
-    cmd: str
+    cmd: CMD
     data: str
 
 

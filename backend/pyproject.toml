@@ -6,5 +6,4 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]",
-    "zeroconf>=0.131.0",
 ]

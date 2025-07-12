@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.multitype)
     implementation(libs.glide)
     implementation(libs.photoview)
-//    implementation(libs.smarttable) // 表格库，暂未用到
+    implementation(libs.mmkv)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

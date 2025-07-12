@@ -9,12 +9,16 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.jasper.labplatform.repository.model.ExperimentInfo
 import com.jasper.labplatform.repository.model.SocketMessage
+import com.jasper.labplatform.utils.getUUID
 import com.jasper.labplatform.utils.runOnMainThread
+import com.jasper.labplatform.utils.saveUUID
 import com.jasper.labplatform.websocket.LabWebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
 object Repository {
+    private val TAG = Repository::class.java.simpleName
+    private val WEBSOCKET_TAG = "$TAG:websocket"
     var baseIP: String? = null
     private val websocketUrl by lazy { "ws://${baseIP}:8000/ws" }
     private val gson = Gson()
@@ -26,7 +30,7 @@ object Repository {
         object : LabWebSocketClient(URI(websocketUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 super.onOpen(handshakedata)
-                send("Hello, server!")
+                send(gson.toJson(SocketMessage(cmd = CMD.CONNECT, data = getUUID() ?: "")))
             }
 
             override fun onMessage(message: String?) {
@@ -37,7 +41,7 @@ object Repository {
                 } catch (
                     e: Exception
                 ) {
-                    Log.e("WebSocket", "Error parsing message: ${e.message}")
+                    Log.e(WEBSOCKET_TAG, "Error parsing message: ${e.message}")
                     return
                 }
                 runOnMainThread {
@@ -63,29 +67,39 @@ object Repository {
             CMD.UPDATE_EXPERIMENT_INFO -> {
                 _experimentInfo.postValue(gson.fromJson(message.data, ExperimentInfo::class.java))
             }
+
+            CMD.CONNECT -> saveUUID(message.data ?: "")
+
+            CMD.SUBMIT_DESITION -> TODO()
         }
     }
 
     enum class CMD {
         @SerializedName("UPDATE_EXPERIMENT_INFO")
-        UPDATE_EXPERIMENT_INFO
+        UPDATE_EXPERIMENT_INFO,
+
+        @SerializedName("CONNECT")
+        CONNECT,
+
+        @SerializedName("SUBMIT_DESITION")
+        SUBMIT_DESITION
     }
 
     fun tryConnectWebsocket() {
-        Log.d("WebSocket", "Trying to connect to: $websocketUrl")
+        Log.d(WEBSOCKET_TAG, "Trying to connect to: $websocketUrl")
         try {
             labWebSocketClient.connect()
         } catch (e: Exception) {
-            Log.e("WebSocket", "Error connecting to WebSocket server: ${e.message}")
+            Log.e(WEBSOCKET_TAG, "Error connecting to WebSocket server: ${e.message}")
         }
     }
 
     private fun tryReconnectWebsocket() {
-        Log.d("WebSocket", "Trying to reconnect to: $websocketUrl")
+        Log.d(WEBSOCKET_TAG, "Trying to reconnect to: $websocketUrl")
         try {
             labWebSocketClient.reconnect()
         } catch (e: Exception) {
-            Log.e("WebSocket", "Error reconnecting to WebSocket server: ${e.message}")
+            Log.e(WEBSOCKET_TAG, "Error reconnecting to WebSocket server: ${e.message}")
         }
     }
 

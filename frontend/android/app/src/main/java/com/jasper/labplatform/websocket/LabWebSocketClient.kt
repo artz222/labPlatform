@@ -6,19 +6,28 @@ import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
 open class LabWebSocketClient(uri: URI) : WebSocketClient(uri) {
+    companion object {
+        private const val TAG = "LabWebSocketClient"
+    }
+
     override fun onOpen(handshakedata: ServerHandshake?) {
-        Log.d("WebSocket", "Connection opened")
+        Log.d(TAG, "Connection opened")
     }
 
     override fun onMessage(message: String?) {
-        Log.d("WebSocket", "Received message: $message")
+        Log.d(TAG, "Received message: $message")
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
-        Log.d("WebSocket", "Connection closed")
+        Log.d(TAG, "Connection closed")
     }
 
     override fun onError(ex: Exception?) {
-        Log.e("WebSocket", "Error: ${ex?.message}")
+        Log.e(TAG, "Error: ${ex?.message}")
+    }
+
+    override fun send(text: String?) {
+        super.send(text)
+        Log.d(TAG, "Sent message: $text")
     }
 }
