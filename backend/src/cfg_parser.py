@@ -1,7 +1,12 @@
+import importlib
 from pathlib import Path
-import yaml
-from .model.cfg import LabConfig, AppConfig
 import pprint
+
+import yaml
+
+from src.algorithm.base_algo import BaseAlgorithm
+
+from .model.cfg import AlgorithmConfig, AppConfig, LabConfig
 
 
 def load_lab_config(config_path: str) -> LabConfig:
@@ -51,6 +56,29 @@ def load_app_config() -> AppConfig:
         pprint.pprint(config_data)
 
     return AppConfig(**config_data)
+
+
+def load_algorithm(cfg: AlgorithmConfig) -> BaseAlgorithm:
+    """加载并解析算法配置文件
+
+    Args:
+        cfg: 算法配置对象
+
+    Returns:
+        解析后的算法对象
+
+    Raises:
+        FileNotFoundError: 算法配置文件不存在
+    """
+    # 动态导入模块
+    module = importlib.import_module(cfg.module)
+
+    # 获取类
+    cls = getattr(module, cfg.class_name)
+
+    # 实例化类
+    obj = cls()
+    return obj
 
 
 __all__ = ["load_app_config", "load_lab_config"]

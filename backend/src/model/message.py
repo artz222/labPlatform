@@ -30,5 +30,6 @@ class Options(BaseModel):
 
 class ExperimentInfo(BaseModel):
     infos: list[Info]
-    image: Image
+    images: list[Image]
     options: Options
+    end: bool = False

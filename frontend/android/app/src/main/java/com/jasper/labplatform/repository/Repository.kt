@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import com.jasper.labplatform.repository.model.DecisionMessage
 import com.jasper.labplatform.repository.model.ExperimentInfo
 import com.jasper.labplatform.repository.model.SocketMessage
 import com.jasper.labplatform.utils.getUUID
@@ -26,11 +27,13 @@ object Repository {
     private val _experimentInfo = MutableLiveData<ExperimentInfo>()
     val experimentInfo: LiveData<ExperimentInfo> get() = _experimentInfo
 
+    private var uuid = getUUID() ?: ""
+
     private val labWebSocketClient by lazy {
         object : LabWebSocketClient(URI(websocketUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 super.onOpen(handshakedata)
-                send(gson.toJson(SocketMessage(cmd = CMD.CONNECT, data = getUUID() ?: "")))
+                send(gson.toJson(SocketMessage(cmd = CMD.CONNECT, data = uuid)))
             }
 
             override fun onMessage(message: String?) {
@@ -68,7 +71,10 @@ object Repository {
                 _experimentInfo.postValue(gson.fromJson(message.data, ExperimentInfo::class.java))
             }
 
-            CMD.CONNECT -> saveUUID(message.data ?: "")
+            CMD.CONNECT -> {
+                uuid = message.data ?: ""
+                saveUUID(message.data ?: "")
+            }
 
             CMD.SUBMIT_DESITION -> TODO()
         }
@@ -105,6 +111,15 @@ object Repository {
 
     fun sendMessage(message: SocketMessage) {
         labWebSocketClient.send(gson.toJson(message))
+    }
+
+    fun submitDecision(decision: String) {
+        sendMessage(
+            SocketMessage(
+                cmd = CMD.SUBMIT_DESITION,
+                data = gson.toJson(DecisionMessage(uuid = uuid, decision = decision))
+            )
+        )
     }
 
 }

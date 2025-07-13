@@ -37,3 +37,10 @@ main_rounds:
             - 战场1
             - 战场2
         hint: 前一个大回合的派兵分布（战场1敌我人数、战场2敌我人数），前一个大回合我军得分，前一个大回合本统帅得分，我军累计得分，本统帅累计得分，本大回合中小回合1中我军派兵分布，本大回合中小回合1中敌军派兵分布（如果参谋没有买信息，则不显示）
+
+algorithm:
+  module: src.algorithm.demo_algo
+  class_name: DemoAlgorithm
+
+hint_pics:
+  - 1.png

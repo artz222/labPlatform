@@ -41,6 +41,9 @@ class MainRoundConfig(BaseModel):
     repeat: int
     sub_rounds: List[SubRoundConfig]
 
+class AlgorithmConfig(BaseModel):
+    module: str
+    class_name: str = None
 
 class LabConfig(BaseModel):
     """
@@ -49,6 +52,8 @@ class LabConfig(BaseModel):
 
     groups: List[GroupConfig]
     main_rounds: List[MainRoundConfig]
+    algorithm: AlgorithmConfig
+    hint_pics: List[str] = None
 
 
 __all__ = ["AppConfig", "LabConfig"]

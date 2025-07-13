@@ -73,14 +73,20 @@ class MainActivity : AppCompatActivity() {
     private fun refreshRvContainer(data: ExperimentInfo) {
 
         val newItems = arrayListOf<Any>().apply {
-            add(Title(title = "可以公开的情报"))
-            data.infos.forEach {
-                add(it)
+            if (data.end) {
+                add(Title(title = "实验已经结束，感谢您的参与"))
+            } else {
+                add(Title(title = "可以公开的情报"))
+                data.infos.forEach {
+                    add(it)
+                }
+                for (image in data.images) {
+                    add(image)
+                }
+                add(Title(title = "请选择"))
+                add(data.options)
+                add(Empty(0, 20))
             }
-            add(data.image)
-            add(Title(title = "请选择"))
-            add(data.options)
-            add(Empty(0, 20))
         }
 
         val diffCallback = ExpInfoRVDiffCallback(mAdapter.items, newItems)
