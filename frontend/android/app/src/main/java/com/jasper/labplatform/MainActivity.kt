@@ -12,6 +12,7 @@ import com.jasper.labplatform.databinding.ActivityMainBinding
 import com.jasper.labplatform.repository.Repository
 import com.jasper.labplatform.repository.model.Empty
 import com.jasper.labplatform.repository.model.ExperimentInfo
+import com.jasper.labplatform.repository.model.ExperimentStatus
 import com.jasper.labplatform.repository.model.Title
 import com.jasper.labplatform.utils.showIpInputDialog
 import com.jasper.labplatform.viewbinder.EmptyItemViewBinder
@@ -73,19 +74,27 @@ class MainActivity : AppCompatActivity() {
     private fun refreshRvContainer(data: ExperimentInfo) {
 
         val newItems = arrayListOf<Any>().apply {
-            if (data.end) {
-                add(Title(title = "实验已经结束，感谢您的参与"))
-            } else {
-                add(Title(title = "可以公开的情报"))
-                data.infos.forEach {
-                    add(it)
+            when (data.expStatus) {
+                ExperimentStatus.RUNNING -> {
+                    add(Title(title = "可以公开的情报"))
+                    data.infos.forEach {
+                        add(it)
+                    }
+                    for (image in data.images) {
+                        add(image)
+                    }
+                    add(Title(title = "请选择"))
+                    add(data.options)
+                    add(Empty(0, 20))
                 }
-                for (image in data.images) {
-                    add(image)
+
+                ExperimentStatus.PENDING -> {
+                    add(Title(title = "当前实验回合结果处理中，请等待"))
                 }
-                add(Title(title = "请选择"))
-                add(data.options)
-                add(Empty(0, 20))
+
+                ExperimentStatus.END -> {
+                    add(Title(title = "实验已经结束，感谢您的参与"))
+                }
             }
         }
 

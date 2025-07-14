@@ -1,5 +1,3 @@
-import json
-import socket
 import typing
 import uuid
 
@@ -7,7 +5,16 @@ from fastapi import WebSocket
 
 from .algorithm.base_algo import BaseAlgorithm
 from .model.cfg import LabConfig, MainRoundConfig, SubRoundConfig
-from .model.message import CMD, ExperimentInfo, Image, Info, Options, SocketMessage
+from .model.message import (
+    CMD,
+    DecisionMessage,
+    ExperimentInfo,
+    ExperimentStatus,
+    Image,
+    Info,
+    Options,
+    SocketMessage,
+)
 
 
 class ConnectionManager:
@@ -43,11 +50,49 @@ class ExperimentManager:
         local_ip: str,
         port: int,
     ):
+        self._exp_pending_msg = SocketMessage(
+            cmd=CMD.UPDATE_EXPERIMENT_INFO,
+            data=ExperimentInfo(
+                infos=[],
+                images=[],
+                options=Options(options=[]),
+                expStatus=ExperimentStatus.PENDING,
+            ).model_dump_json(),
+        ).model_dump_json()
+
         self.connection_manager = connection_manager
         self.cur_main_round = 0
         self.cur_sub_round = 0
         self.lab_cfg = lab_cfg
         self.experiment_devices = {}
+        """
+        维护本次实验所需要的全部客户端设备信息
+
+        字典结构
+        key: 设备uuid
+        value: 设备信息
+        {
+            "uuid": {
+                "cur_message": str, # 保存的本设备当前回合的消息
+                "role": (str, str), # 设备的角色 (组别, 角色)
+                "websocket": WebSocket, # 设备的websocket连接对象
+            },
+        }
+        """
+        self.cur_round_submit_devices = {}
+        """
+        维护当前回合进行了提交的实验设备信息
+
+        字典结构
+        key: 设备uuid
+        value: 设备信息
+        {
+            "uuid": {
+                "decision": str, # 保存的本设备当前回合的决策
+                "role": (str, str), # 设备的角色 (组别, 角色)
+            },
+        }
+        """
         self.main_rounds = self._flatten_main_rounds()
         self._refresh_sub_rounds_list()
         self.algorithm = algorithm
@@ -173,14 +218,14 @@ class ExperimentManager:
         """
 
         if self._is_reconnect(data):
-            # TODO: 设备重连的时候下发设备当前实验信息
+            # 设备重连的时候下发设备当前实验信息
             print(f"设备重连 uuid: {data}")
             self.experiment_devices[data]["websocket"] = websocket
-            await self.connection_manager.send_message(
-                self.experiment_devices[data]["cur_message"],
-                websocket,
-            )
-
+            if "cur_message" in self.experiment_devices[data]:
+                await self.connection_manager.send_message(
+                    self.experiment_devices[data]["cur_message"],
+                    websocket,
+                )
             return
         else:
             role = self._assign_role()
@@ -262,25 +307,40 @@ class ExperimentManager:
             case CMD.CONNECT:
                 await self._handle_connect(websocket, message.data)
             case CMD.SUBMIT_DESITION:
-                # TODO: 处理实验决策提交逻辑
-                self.algorithm.process()
-                if self._next_round() > 0:
-                    await self._start_cur_round()
-                else:
-                    print("===================实验结束====================")
-                    await self.connection_manager.broadcast(
-                        SocketMessage(
-                            cmd=CMD.UPDATE_EXPERIMENT_INFO,
-                            data=ExperimentInfo(
-                                infos=[],
-                                images=[],
-                                options=Options(options=[]),
-                                end=True,
-                            ).model_dump_json(),
-                        ).model_dump_json()
-                    )
+                await self._handle_submit_desition(websocket, message.data)
             case CMD.UPDATE_EXPERIMENT_INFO:
                 pass
+
+    async def _handle_submit_desition(self, websocket: WebSocket, data: str):
+        """
+        处理实验决策提交
+        """
+
+        # 解析消息
+        msg = DecisionMessage.model_validate_json(data)
+
+        # 下发消息：请等待其他实验参与者提交与后台处理
+        self.experiment_devices[msg.uuid]["cur_message"] = self._exp_pending_msg
+        await self.connection_manager.send_message(self._exp_pending_msg, websocket)
+
+        # TODO: 处理实验决策提交逻辑
+
+        self.algorithm.process()
+        if self._next_round() > 0:
+            await self._start_cur_round()
+        else:
+            print("===================实验结束====================")
+            await self.connection_manager.broadcast(
+                SocketMessage(
+                    cmd=CMD.UPDATE_EXPERIMENT_INFO,
+                    data=ExperimentInfo(
+                        infos=[],
+                        images=[],
+                        options=Options(options=[]),
+                        expStatus=ExperimentStatus.END,
+                    ).model_dump_json(),
+                ).model_dump_json()
+            )
 
 
 __all__ = ["ConnectionManager", "ExperimentManager"]

@@ -4,5 +4,11 @@ data class ExperimentInfo(
     val infos: List<Info>,
     val images: List<Image>,
     val options: Options,
-    val end: Boolean
+    val expStatus: ExperimentStatus
 )
+
+enum class ExperimentStatus {
+    RUNNING,
+    PENDING,
+    END
+}
