@@ -12,6 +12,9 @@ class AppConfig(BaseModel):
 
 
 class RoleConfig(BaseModel):
+    """
+    角色配置
+    """
     name: str
     num: int
 
@@ -23,7 +26,7 @@ class GroupConfig(BaseModel):
 
 class MakerConfig(BaseModel):
     groups: List[str] = None
-    roles: List[str]
+    roles: List[str] = None
 
 
 class DecisionConfig(BaseModel):

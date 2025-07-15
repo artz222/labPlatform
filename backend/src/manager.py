@@ -64,6 +64,7 @@ class ExperimentManager:
         self.cur_main_round = 0
         self.cur_sub_round = 0
         self.lab_cfg = lab_cfg
+
         self.experiment_devices = {}
         """
         维护本次实验所需要的全部客户端设备信息
@@ -79,6 +80,39 @@ class ExperimentManager:
             },
         }
         """
+
+        self.submit_logs = []
+        """
+        维护所有回合的提交日志
+
+        列表结构
+        [
+            # 第1回合
+            {
+                "uuid1": {
+                    "decision": str, # 保存的本设备当前回合的决策
+                    "role": (str, str), # 设备的角色 (组别, 角色)
+                },
+                "uuid2": {
+                    "decision": str, # 保存的本设备当前回合的决策
+                    "role": (str, str), # 设备的角色 (组别, 角色)
+                },
+            },
+            # 第2回合
+            {
+                "uuid1": {
+                    "decision": str, # 保存的本设备当前回合的决策
+                    "role": (str, str), # 设备的角色 (组别, 角色)
+                },
+                "uuid2": {
+                    "decision": str, # 保存的本设备当前回合的决策
+                    "role": (str, str), # 设备的角色 (组别, 角色)
+                },
+            },
+            ...
+        ]
+        """
+
         self.cur_round_submit_devices = {}
         """
         维护当前回合进行了提交的实验设备信息
@@ -163,11 +197,32 @@ class ExperimentManager:
             int: 当前小回合的实验决策人数
         """
 
+        round = self.sub_rounds[self.cur_sub_round]
+        makers = round.decision.makers
         num = 0
-        for sub_round in self.sub_rounds:
-            num += sub_round.decision
+        for maker in makers:
+            num += self._get_group_roles_num(groups=maker.groups, roles=maker.roles)
 
-        return 0
+        return num
+    
+    def _get_group_roles_num(self, groups: list[str] = None, roles:list[str] = None) -> int:
+        """
+        获取指定组别角色的实验人数
+
+        Args:
+            groups (list[str], optional): 组别列表. Defaults to None.
+            roles (list[str], optional): 角色列表. Defaults to None.
+
+        Returns:
+            int: 组别角色实验人数
+        """
+        num = 0
+        for group in self.lab_cfg.groups:
+            if groups is None or group.name in groups:
+                for role in group.roles:
+                    if roles is None or role.name in roles:
+                        num += role.num
+        return num
 
     def _generate_uuid(self) -> str:
         """
@@ -267,6 +322,11 @@ class ExperimentManager:
         开始当前回合
         """
 
+        # 初始化当前回合相关信息
+        self.submit_logs.append(self.cur_round_submit_devices)
+        self.cur_round_submit_devices.clear()
+        self.cur_round_participants_num = self._get_cur_participants_num()
+
         socketMessage = SocketMessage(
             cmd=CMD.UPDATE_EXPERIMENT_INFO,
             data=ExperimentInfo(
@@ -324,6 +384,13 @@ class ExperimentManager:
         await self.connection_manager.send_message(self._exp_pending_msg, websocket)
 
         # TODO: 处理实验决策提交逻辑
+        self.cur_round_submit_devices[msg.uuid] = {
+            "role": self.experiment_devices[msg.uuid]["role"],
+            "decision": msg.decision,
+        }
+        if(self.cur_round_participants_num == len(self.cur_round_submit_devices)):
+            # TODO: 处理实验决策提交逻辑
+            pass
 
         self.algorithm.process()
         if self._next_round() > 0:
