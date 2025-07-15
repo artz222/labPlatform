@@ -1,5 +1,5 @@
-from tokenize import group
 from typing import List
+
 from pydantic import BaseModel
 
 
@@ -15,38 +15,65 @@ class RoleConfig(BaseModel):
     """
     角色配置
     """
+
     name: str
     num: int
 
 
 class GroupConfig(BaseModel):
+    """
+    组别配置
+    """
+
     name: str
     roles: List[RoleConfig]
 
 
 class MakerConfig(BaseModel):
+    """
+    决策人配置
+    """
+
     groups: List[str] = None
-    roles: List[str] = None
+    roles: List[str]
 
 
 class DecisionConfig(BaseModel):
-    makers: List[MakerConfig]
+    """
+    决策配置
+    """
+
+    makers: List[MakerConfig] = None
     options: List[str]
 
 
 class SubRoundConfig(BaseModel):
+    """
+    子回合配置
+    """
+
     repeat: int
     decision: DecisionConfig
     hint: str
 
 
 class MainRoundConfig(BaseModel):
+    """
+    主回合配置
+    """
+
     repeat: int
     sub_rounds: List[SubRoundConfig]
 
+
 class AlgorithmConfig(BaseModel):
+    """
+    算法配置
+    """
+
     module: str
     class_name: str = None
+
 
 class LabConfig(BaseModel):
     """

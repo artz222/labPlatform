@@ -60,6 +60,16 @@ class ExperimentManager:
             ).model_dump_json(),
         ).model_dump_json()
 
+        self._exp_end_msg = SocketMessage(
+            cmd=CMD.UPDATE_EXPERIMENT_INFO,
+            data=ExperimentInfo(
+                infos=[],
+                images=[],
+                options=Options(options=[]),
+                expStatus=ExperimentStatus.END,
+            ).model_dump_json(),
+        ).model_dump_json()
+
         self.connection_manager = connection_manager
         self.cur_main_round = 0
         self.cur_sub_round = 0
@@ -111,6 +121,12 @@ class ExperimentManager:
             },
             ...
         ]
+        """
+
+        self.cur_round_participants = set[str]()
+        """
+        维护当前回合的实验参与人员
+            {uuid1, uuid2, ...}
         """
 
         self.cur_round_submit_devices = {}
@@ -189,6 +205,25 @@ class ExperimentManager:
             for _ in range(sub_round.repeat):
                 self.sub_rounds.append(sub_round)
 
+    def _init_cur_round_participants(self):
+        """
+        初始化当前回合的实验参与人员
+
+        """
+        self.cur_round_participants.clear()
+        round = self.sub_rounds[self.cur_sub_round]
+        makers = round.decision.makers
+        # makers 为空，所有设备都参与
+        if makers is None:
+            self.cur_round_participants.update(self.experiment_devices.keys())
+            return
+        for uuid, value in self.experiment_devices.items():
+            for maker in makers:
+                if maker.groups is None or value["role"][0] in maker.groups:
+                    if maker.roles is None or value["role"][1] in maker.roles:
+                        self.cur_round_participants.add(uuid)
+        print(f"本回合参与人: {self.cur_round_participants}")
+
     def _get_cur_participants_num(self) -> int:
         """
         获取当前小回合的实验决策人数
@@ -204,8 +239,10 @@ class ExperimentManager:
             num += self._get_group_roles_num(groups=maker.groups, roles=maker.roles)
 
         return num
-    
-    def _get_group_roles_num(self, groups: list[str] = None, roles:list[str] = None) -> int:
+
+    def _get_group_roles_num(
+        self, groups: list[str] = None, roles: list[str] = None
+    ) -> int:
         """
         获取指定组别角色的实验人数
 
@@ -300,10 +337,16 @@ class ExperimentManager:
                 SocketMessage(cmd=CMD.CONNECT, data=uuid).model_dump(),
                 websocket,
             )
+
+            # 设备第一次连接先下发pending信息
+            self.experiment_devices[uuid]["cur_message"] = self._exp_pending_msg
+            await self.connection_manager.send_message(self._exp_pending_msg, websocket)
+
             if self._total_participants_num() == len(self.experiment_devices):
                 print("实验人数已足够, 开始实验")
-                await self._start_cur_round()
-        print(self.experiment_devices)
+                process_result = self.algorithm.process()
+                await self._start_cur_round(process_result)
+        print(f"当前连接设备信息: {self.experiment_devices}")
 
     def _generate_pic_url(self, name: str) -> str:
         """
@@ -317,41 +360,80 @@ class ExperimentManager:
         """
         return f"http://{self.local_ip}:{self.port}/images/{name}"
 
-    async def _start_cur_round(self):
+    async def _start_cur_round(self, process_result: dict[str, str]):
         """
-        开始当前回合
+        开始当前回合 下发实验信息
+
+        Args:
+            process_result (dict[str, str]): 上回合处理结果
         """
 
         # 初始化当前回合相关信息
         self.submit_logs.append(self.cur_round_submit_devices)
         self.cur_round_submit_devices.clear()
-        self.cur_round_participants_num = self._get_cur_participants_num()
+        self._init_cur_round_participants()
 
+        # 下发实验信息
+        for uuid in self.cur_round_participants:
+            socketMessage = self._generate_exp_info_message(uuid, process_result)
+            self.experiment_devices[uuid][
+                "cur_message"
+            ] = socketMessage.model_dump_json()
+            await self.connection_manager.send_message(
+                socketMessage.model_dump_json(),
+                self.experiment_devices[uuid]["websocket"],
+            )
+
+    def _generate_exp_info_message(
+        self, uuid, process_result: dict[str, str]
+    ) -> SocketMessage:
+        """
+        生成实验信息消息
+
+        Args:
+            process_result (dict[str, str]): 上回合处理结果
+
+        Returns:
+            SocketMessage: 实验信息消息
+        """
+
+        data = ExperimentInfo(
+            infos=[
+                Info(
+                    hint="实验轮数",
+                    value=f"{self.cur_main_round+1}/{len(self.main_rounds)}",
+                ),
+                Info(
+                    hint="当前回合数",
+                    value=f"{self.cur_sub_round+1}/{len(self.sub_rounds)}",
+                ),
+                Info(
+                    hint="你的分组",
+                    value=self.experiment_devices[uuid]["role"][0],
+                ),
+                Info(
+                    hint="你的角色",
+                    value=self.experiment_devices[uuid]["role"][1],
+                ),
+            ],
+            images=[
+                Image(imageUrl=self._generate_pic_url(name))
+                for name in self.lab_cfg.hint_pics
+            ],
+            options=Options(
+                options=self.sub_rounds[self.cur_sub_round].decision.options
+            ),
+        )
+        if process_result.items():
+            data.infos.extend(
+                [Info(hint=key, value=value) for key, value in process_result.items()]
+            )
         socketMessage = SocketMessage(
             cmd=CMD.UPDATE_EXPERIMENT_INFO,
-            data=ExperimentInfo(
-                infos=[
-                    Info(
-                        hint="实验轮数",
-                        value=f"{self.cur_main_round+1}/{len(self.main_rounds)}",
-                    ),
-                    Info(
-                        hint="当前回合数",
-                        value=f"{self.cur_sub_round+1}/{len(self.sub_rounds)}",
-                    ),
-                ],
-                images=[
-                    Image(imageUrl=self._generate_pic_url(name))
-                    for name in self.lab_cfg.hint_pics
-                ],
-                options=Options(
-                    options=self.sub_rounds[self.cur_sub_round].decision.options
-                ),
-            ).model_dump_json(),
+            data=data.model_dump_json(),
         )
-        for device in self.experiment_devices.values():
-            device["cur_message"] = socketMessage.model_dump_json()
-        await self.connection_manager.broadcast(socketMessage.model_dump_json())
+
+        return socketMessage
 
     async def parse_message(self, message: SocketMessage, websocket: WebSocket):
         """
@@ -367,11 +449,11 @@ class ExperimentManager:
             case CMD.CONNECT:
                 await self._handle_connect(websocket, message.data)
             case CMD.SUBMIT_DESITION:
-                await self._handle_submit_desition(websocket, message.data)
+                await self._handle_submit_decision(websocket, message.data)
             case CMD.UPDATE_EXPERIMENT_INFO:
                 pass
 
-    async def _handle_submit_desition(self, websocket: WebSocket, data: str):
+    async def _handle_submit_decision(self, websocket: WebSocket, data: str):
         """
         处理实验决策提交
         """
@@ -383,31 +465,24 @@ class ExperimentManager:
         self.experiment_devices[msg.uuid]["cur_message"] = self._exp_pending_msg
         await self.connection_manager.send_message(self._exp_pending_msg, websocket)
 
-        # TODO: 处理实验决策提交逻辑
+        # 记录当前实验设备提交信息
         self.cur_round_submit_devices[msg.uuid] = {
             "role": self.experiment_devices[msg.uuid]["role"],
             "decision": msg.decision,
         }
-        if(self.cur_round_participants_num == len(self.cur_round_submit_devices)):
-            # TODO: 处理实验决策提交逻辑
-            pass
 
-        self.algorithm.process()
-        if self._next_round() > 0:
-            await self._start_cur_round()
-        else:
-            print("===================实验结束====================")
-            await self.connection_manager.broadcast(
-                SocketMessage(
-                    cmd=CMD.UPDATE_EXPERIMENT_INFO,
-                    data=ExperimentInfo(
-                        infos=[],
-                        images=[],
-                        options=Options(options=[]),
-                        expStatus=ExperimentStatus.END,
-                    ).model_dump_json(),
-                ).model_dump_json()
-            )
+        print(f"当前回合提交信息更新: {self.cur_round_submit_devices}")
+
+        # 本回合参与对象全部提交之后 调用算法进行处理 并推进下一回合实验展开
+        if len(self.cur_round_participants) == len(self.cur_round_submit_devices):
+            process_result = self.algorithm.process()
+            if self._next_round() > 0:
+                await self._start_cur_round(process_result)
+            else:
+                print("===================实验结束====================")
+                for value in self.experiment_devices.values():
+                    value["cur_message"] = self._exp_end_msg
+                await self.connection_manager.broadcast(self._exp_end_msg)
 
 
 __all__ = ["ConnectionManager", "ExperimentManager"]
