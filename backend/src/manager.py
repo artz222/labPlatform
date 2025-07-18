@@ -283,7 +283,7 @@ class ExperimentManager:
 
         return uuid in self.experiment_devices
 
-    def _assign_role(self) -> (str, str):
+    def _assign_role(self) -> tuple[str, str]:
         """
         分配角色（顺序分配）
 
