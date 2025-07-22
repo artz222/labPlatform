@@ -20,7 +20,7 @@
 4. uv sync
 5. 激活uv环境：(使用git bash环境)
     a. cd backend
-    b. source .venv/bin/activate
+    b. source .venv/Scripts/activate
 6. cd src
 7. fastapi run main.py
 
