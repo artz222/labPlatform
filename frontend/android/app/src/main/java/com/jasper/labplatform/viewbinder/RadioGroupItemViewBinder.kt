@@ -11,7 +11,6 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
-import androidx.core.view.isNotEmpty
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewBinder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -29,7 +28,8 @@ class RadioGroupItemViewBinder : ItemViewBinder<Options, RadioGroupItemViewBinde
 
     override fun onBindViewHolder(holder: ViewHolder, item: Options) {
         holder.apply {
-            if (radioGroup.isNotEmpty()) return
+            radioGroup.removeAllViews()
+            radioGroup.clearCheck()
             item.options.forEachIndexed { index, option ->
                 radioGroup.addView(RadioButton(itemView.context).apply {
                     text = option
