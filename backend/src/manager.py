@@ -1,3 +1,4 @@
+import copy
 import typing
 import uuid
 
@@ -144,8 +145,11 @@ class ExperimentManager:
         }
         """
         self.main_rounds = self._flatten_main_rounds()
-        self._refresh_sub_rounds_list()
         self.algorithm = algorithm
+        self.algorithm.experiment_devices = (
+            self.experiment_devices
+        )  # 让算法类能访问所有人的组别信息
+        self._refresh_sub_rounds_list()
         self.local_ip = local_ip
         self.port = port
         print(f"总实验人数: {self._total_participants_num()}")
@@ -161,6 +165,8 @@ class ExperimentManager:
         self.cur_sub_round += 1
         if self.cur_sub_round >= len(self.sub_rounds):
             if self.cur_main_round + 1 >= len(self.main_rounds):
+                self.cur_main_round += 1
+                self.cur_sub_round = 0
                 return -1
             self.cur_sub_round = 0
             self.cur_main_round += 1
@@ -204,6 +210,8 @@ class ExperimentManager:
         for sub_round in self.main_rounds[self.cur_main_round].sub_rounds:
             for _ in range(sub_round.repeat):
                 self.sub_rounds.append(sub_round)
+
+        self.algorithm.sub_rounds = self.sub_rounds
 
     def _init_cur_round_participants(self):
         """
@@ -344,8 +352,21 @@ class ExperimentManager:
 
             if self._total_participants_num() == len(self.experiment_devices):
                 print("实验人数已足够, 开始实验")
-                process_result = self.algorithm.process()
-                await self._start_cur_round(process_result)
+
+                # 初始化当前回合参与人
+                self._init_cur_round_participants()
+
+                # 为每个参与人生成独立的 process_result
+                process_result_map = {}
+                for uid in self.cur_round_participants:
+                    process_result_map[uid] = self.algorithm.process(
+                        uuid=uid,
+                        submit_logs=self.submit_logs,
+                        cur_main_round=self.cur_main_round,
+                        cur_sub_round=self.cur_sub_round,
+                    )
+
+                await self._start_cur_round(process_result_map)
         print(f"当前连接设备信息: {self.experiment_devices}")
 
     def _generate_pic_url(self, name: str) -> str:
@@ -360,22 +381,19 @@ class ExperimentManager:
         """
         return f"http://{self.local_ip}:{self.port}/images/{name}"
 
-    async def _start_cur_round(self, process_result: dict[str, str]):
+    async def _start_cur_round(self, process_result_map: dict[str, dict[str, str]]):
         """
         开始当前回合 下发实验信息
 
         Args:
-            process_result (dict[str, str]): 上回合处理结果
+            process_result_map (dict[str, dict[str, str]]): 上回合处理结果，每个参与者的结果
         """
-
-        # 初始化当前回合相关信息
-        self.submit_logs.append(self.cur_round_submit_devices)
-        self.cur_round_submit_devices.clear()
-        self._init_cur_round_participants()
 
         # 下发实验信息
         for uuid in self.cur_round_participants:
-            socketMessage = self._generate_exp_info_message(uuid, process_result)
+            # 获取每个人自己的界面数据
+            user_result = process_result_map.get(uuid, {})
+            socketMessage = self._generate_exp_info_message(uuid, user_result)
             self.experiment_devices[uuid][
                 "cur_message"
             ] = socketMessage.model_dump_json()
@@ -475,10 +493,34 @@ class ExperimentManager:
 
         # 本回合参与对象全部提交之后 调用算法进行处理 并推进下一回合实验展开
         if len(self.cur_round_participants) == len(self.cur_round_submit_devices):
-            process_result = self.algorithm.process()
+            # 先保存本回合提交日志
+            self.submit_logs.append(copy.deepcopy(self.cur_round_submit_devices))
+
+            # 针对所有下一轮参与者分别计算界面数据
+            process_result_map = {}
+
+            # 初始化下一回合相关信息
+            self.cur_round_submit_devices.clear()
+            self._init_cur_round_participants()
+
             if self._next_round() > 0:
-                await self._start_cur_round(process_result)
+                for uid in self.cur_round_participants:
+                    process_result_map[uid] = self.algorithm.process(
+                        uuid=uid,
+                        submit_logs=self.submit_logs,
+                        cur_main_round=self.cur_main_round,
+                        cur_sub_round=self.cur_sub_round,
+                    )
+                await self._start_cur_round(process_result_map)
             else:
+                print("===================最后一回合数据处理====================")
+                for uid in self.cur_round_participants:
+                    process_result_map[uid] = self.algorithm.process(
+                        uuid=uid,
+                        submit_logs=self.submit_logs,
+                        cur_main_round=self.cur_main_round,
+                        cur_sub_round=self.cur_sub_round,
+                    )
                 print("===================实验结束====================")
                 for value in self.experiment_devices.values():
                     value["cur_message"] = self._exp_end_msg

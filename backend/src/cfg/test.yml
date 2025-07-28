@@ -7,9 +7,13 @@ groups:
   - name: A
     roles:
       - name: 统帅
+        num: 3
+      - name: 参谋
         num: 1
   - name: B
     roles:
+      - name: 统帅
+        num: 3
       - name: 参谋
         num: 1
 hint_pics:
