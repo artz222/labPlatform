@@ -363,6 +363,7 @@ class ExperimentManager:
                         submit_logs=self.submit_logs,
                         cur_main_round=self.cur_main_round,
                         cur_sub_round=self.cur_sub_round,
+                        is_last_round=False,
                     )
 
                 await self._start_cur_round(process_result_map)
@@ -512,16 +513,18 @@ class ExperimentManager:
                         submit_logs=self.submit_logs,
                         cur_main_round=self.cur_main_round,
                         cur_sub_round=self.cur_sub_round,
+                        is_last_round=False,
                     )
                 await self._start_cur_round(process_result_map)
             else:
                 print("===================最后一回合数据处理====================")
-                for uid in self.cur_round_participants:
+                for uid in self.experiment_devices.keys():
                     process_result_map[uid] = self.algorithm.process(
                         uuid=uid,
                         submit_logs=self.submit_logs,
                         cur_main_round=self.cur_main_round,
                         cur_sub_round=self.cur_sub_round,
+                        is_last_round=True,
                     )
                 print("===================实验结束====================")
                 for value in self.experiment_devices.values():

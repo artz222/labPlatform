@@ -21,7 +21,7 @@ class BaseAlgorithm:
 
     @abc.abstractmethod
     def process(
-        self, uuid, submit_logs, cur_main_round, cur_sub_round
+        self, uuid, submit_logs, cur_main_round, cur_sub_round, is_last_round
     ) -> dict[str, str]:
         """
         处理实验数据

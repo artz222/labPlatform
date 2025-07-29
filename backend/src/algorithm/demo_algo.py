@@ -4,12 +4,12 @@ from .base_algo import BaseAlgorithm
 class DemoAlgorithm(BaseAlgorithm):
     # todo 增加最后一轮计算方式
     def process(
-        self, uuid, submit_logs, cur_main_round, cur_sub_round
+        self, uuid, submit_logs, cur_main_round, cur_sub_round, is_last_round
     ) -> dict[str, str]:
-        super().process(uuid, submit_logs, cur_main_round, cur_sub_round)
+        super().process(uuid, submit_logs, cur_main_round, cur_sub_round, is_last_round)
         if uuid is None:
             return {}
-
+            
         # 获取自己的组别和角色
         my_team, my_role = self.experiment_devices[uuid]["role"]
         enemy_team = "B" if my_team == "A" else "A"
@@ -251,9 +251,131 @@ class DemoAlgorithm(BaseAlgorithm):
         )
 
         result = {}
-        # 小回合1（统帅决策）
-        if cur_sub_round == 0 and my_role == "统帅":
-            if cur_main_round > 0:
+        if not is_last_round:
+            # 小回合0（统帅决策）
+            if cur_sub_round == 0 and my_role == "统帅":
+                if cur_main_round > 0:
+                    idx3 = cur_main_round * num_sub_rounds - 1
+                    round3 = submit_logs[idx3] if idx3 < len(submit_logs) else {}
+                    current_score = calculate_round_score(cur_main_round - 1, streak_counts)
+                    result["前一个大回合我军得分"] = str(current_score[my_team])
+                    result["前一个大回合本统帅得分"] = str(
+                        tongshuai_per_round.get(cur_main_round - 1, {}).get(uuid, 0)
+                    )
+                    result["我军累计得分"] = str(cumulative_scores[my_team])
+                    result["本统帅累计得分"] = str(tongshuai_cumulative.get(uuid, 0))
+                    result["前一个大回合我军战场1人数"] = str(
+                        count_battle(round3, my_team, "战场1")
+                    )
+                    result["前一个大回合我军战场2人数"] = str(
+                        count_battle(round3, my_team, "战场2")
+                    )
+                    result["前一个大回合敌军战场1人数"] = str(
+                        count_battle(round3, enemy_team, "战场1")
+                    )
+                    result["前一个大回合敌军战场2人数"] = str(
+                        count_battle(round3, enemy_team, "战场2")
+                    )
+                    result["前一个大回合本统帅最终选择"] = find_tongshuai_choice(
+                        uuid, cur_main_round - 1, 2
+                    )
+                    result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
+                    result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
+                else:
+                    result["前一个大回合我军得分"] = "0"
+                    result["前一个大回合本统帅得分"] = "0"
+                    result["我军累计得分"] = "0"
+                    result["本统帅累计得分"] = "0"
+
+            # 小回合1（参谋决策）
+            elif cur_sub_round == 1 and my_role == "参谋":
+
+                idx1 = cur_main_round * num_sub_rounds
+                round1 = submit_logs[idx1] if idx1 < len(submit_logs) else {}
+
+                if cur_main_round > 0:
+                    idx2 = (cur_main_round - 1) * num_sub_rounds + 1
+                    advisor_decision = (
+                        submit_logs[idx2].get(uuid, {}).get("decision", "")
+                    )  # 前一个大回和参谋决策
+                    last_score = calculate_round_score(cur_main_round - 1, streak_counts)
+                    result["前一个大回合我军得分"] = str(last_score[my_team])
+                    result["前一个大回合本参谋得分"] = str(
+                        canmou_per_round.get(cur_main_round - 1, {}).get(uuid, 0)
+                    )
+                    result["我军累计得分"] = str(cumulative_scores[my_team])
+                    result["本参谋累计得分"] = str(canmou_cumulative.get(uuid, 0))
+                    result["前一个大回合本参谋选择"] = advisor_decision
+                else:
+                    result["前一个大回合我军得分"] = "0"
+                    result["前一个大回合本参谋得分"] = "0"
+                    result["我军累计得分"] = "0"
+                    result["本参谋累计得分"] = "0"
+
+                result["本大回合中小回合1我军战场1人数"] = str(
+                    count_battle(round1, my_team, "战场1")
+                )
+                result["本大回合中小回合1我军战场2人数"] = str(
+                    count_battle(round1, my_team, "战场2")
+                )
+                result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
+                result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
+
+            # 小回合2（统帅决策）
+            elif cur_sub_round == 2 and my_role == "统帅":
+                last_round_score = (
+                    calculate_round_score(cur_main_round - 1, streak_counts)
+                    if cur_main_round > 0
+                    else {"A": 0, "B": 0}
+                )
+                idx1 = cur_main_round * num_sub_rounds
+                round1 = submit_logs[idx1] if idx1 < len(submit_logs) else {}
+                if cur_main_round == 0:
+                    result["前一个大回合我军得分"] = "0"
+                    result["前一个大回合本统帅得分"] = "0"
+                else:
+                    result["前一个大回合我军得分"] = str(last_round_score[my_team])
+                    result["前一个大回合本统帅得分"] = str(
+                        tongshuai_per_round.get(cur_main_round - 1, {}).get(uuid, 0)
+                    )
+
+                result["我军累计得分"] = str(cumulative_scores[my_team])
+                result["本统帅累计得分"] = str(tongshuai_cumulative.get(uuid, 0))
+                result["本大回合中小回合1本统帅选择"] = find_tongshuai_choice(
+                    uuid, cur_main_round, 0
+                )
+                result["本大回合中小回合1我军战场1人数"] = str(
+                    count_battle(round1, my_team, "战场1")
+                )
+                result["本大回合中小回合1我军战场2人数"] = str(
+                    count_battle(round1, my_team, "战场2")
+                )
+
+                # 第二回合本军参谋是否购买信息
+                buy = purchase_records.get(cur_main_round, {}).get(my_team, "")
+                if buy == "购买":
+                    result["本大回合中小回合1敌军战场1人数"] = str(
+                        count_battle(round1, enemy_team, "战场1")
+                    )
+                    result["本大回合中小回合1敌军战场2人数"] = str(
+                        count_battle(round1, enemy_team, "战场2")
+                    )
+                elif buy == "不购买":
+                    result["本大回合中小回合1敌军战场1人数"] = "未购买"
+                    result["本大回合中小回合1敌军战场2人数"] = "未购买"
+
+                result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
+                result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
+            
+            print(
+                f"本轮主回合:{cur_main_round},\n本轮小回合: {cur_sub_round}, \n本轮决策者: {my_role}, \n当前队伍: {my_team}, \n信息界面：{result}\n"
+            )
+            # print(f"实验日志：{submit_logs}")
+        else:
+            # 最后一轮，输出最终结果
+            if my_role == "统帅":
+                cur_sub_round = 0
+                cur_main_round += 1
                 idx3 = cur_main_round * num_sub_rounds - 1
                 round3 = submit_logs[idx3] if idx3 < len(submit_logs) else {}
                 current_score = calculate_round_score(cur_main_round - 1, streak_counts)
@@ -280,19 +402,11 @@ class DemoAlgorithm(BaseAlgorithm):
                 )
                 result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
                 result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
-            else:
-                result["前一个大回合我军得分"] = "0"
-                result["前一个大回合本统帅得分"] = "0"
-                result["我军累计得分"] = "0"
-                result["本统帅累计得分"] = "0"
-
-        # 小回合2（参谋决策）
-        elif cur_sub_round == 1 and my_role == "参谋":
-
-            idx1 = cur_main_round * num_sub_rounds
-            round1 = submit_logs[idx1] if idx1 < len(submit_logs) else {}
-
-            if cur_main_round > 0:
+            elif my_role == "参谋":
+                cur_sub_round = 1
+                cur_main_round += 1
+                idx1 = cur_main_round * num_sub_rounds
+                round1 = submit_logs[idx1] if idx1 < len(submit_logs) else {}
                 idx2 = (cur_main_round - 1) * num_sub_rounds + 1
                 advisor_decision = (
                     submit_logs[idx2].get(uuid, {}).get("decision", "")
@@ -305,70 +419,10 @@ class DemoAlgorithm(BaseAlgorithm):
                 result["我军累计得分"] = str(cumulative_scores[my_team])
                 result["本参谋累计得分"] = str(canmou_cumulative.get(uuid, 0))
                 result["前一个大回合本参谋选择"] = advisor_decision
-            else:
-                result["前一个大回合我军得分"] = "0"
-                result["前一个大回合本参谋得分"] = "0"
-                result["我军累计得分"] = "0"
-                result["本参谋累计得分"] = "0"
-
-            result["本大回合中小回合1我军战场1人数"] = str(
-                count_battle(round1, my_team, "战场1")
+                result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
+                result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
+            print(
+                f"用户ID: {uuid}, \n角色: {my_role}, \n队伍: {my_team}, \n得分情况：{result}\n"
             )
-            result["本大回合中小回合1我军战场2人数"] = str(
-                count_battle(round1, my_team, "战场2")
-            )
-            result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
-            result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
-
-        # 小回合3（统帅决策）
-        elif cur_sub_round == 2 and my_role == "统帅":
-            last_round_score = (
-                calculate_round_score(cur_main_round - 1, streak_counts)
-                if cur_main_round > 0
-                else {"A": 0, "B": 0}
-            )
-            idx1 = cur_main_round * num_sub_rounds
-            round1 = submit_logs[idx1] if idx1 < len(submit_logs) else {}
-            if cur_main_round == 0:
-                result["前一个大回合我军得分"] = "0"
-                result["前一个大回合本统帅得分"] = "0"
-            else:
-                result["前一个大回合我军得分"] = str(last_round_score[my_team])
-                result["前一个大回合本统帅得分"] = str(
-                    tongshuai_per_round.get(cur_main_round - 1, {}).get(uuid, 0)
-                )
-
-            result["我军累计得分"] = str(cumulative_scores[my_team])
-            result["本统帅累计得分"] = str(tongshuai_cumulative.get(uuid, 0))
-            result["本大回合中小回合1本统帅选择"] = find_tongshuai_choice(
-                uuid, cur_main_round, 0
-            )
-            result["本大回合中小回合1我军战场1人数"] = str(
-                count_battle(round1, my_team, "战场1")
-            )
-            result["本大回合中小回合1我军战场2人数"] = str(
-                count_battle(round1, my_team, "战场2")
-            )
-
-            # 第二回合本军参谋是否购买信息
-            buy = purchase_records.get(cur_main_round, {}).get(my_team, "")
-            if buy == "购买":
-                result["本大回合中小回合1敌军战场1人数"] = str(
-                    count_battle(round1, enemy_team, "战场1")
-                )
-                result["本大回合中小回合1敌军战场2人数"] = str(
-                    count_battle(round1, enemy_team, "战场2")
-                )
-            elif buy == "不购买":
-                result["本大回合中小回合1敌军战场1人数"] = "未购买"
-                result["本大回合中小回合1敌军战场2人数"] = "未购买"
-
-            result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
-            result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
-
-        print(
-            f"本轮主回合:{cur_main_round},\n本轮小回合: {cur_sub_round}, \n本轮轮策者: {my_role}, \n当前队伍: {my_team}, \n信息界面：{result}\n"
-        )
-        # print(f"实验日志：{submit_logs}")
 
         return result
