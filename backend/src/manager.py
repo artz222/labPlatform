@@ -4,9 +4,9 @@ import uuid
 
 from fastapi import WebSocket
 
-from .algorithm.base_algo import BaseAlgorithm
-from .model.cfg import LabConfig, MainRoundConfig, SubRoundConfig
-from .model.message import (
+from algorithm.base_algo import BaseAlgorithm
+from model.cfg import LabConfig, MainRoundConfig, SubRoundConfig
+from model.message import (
     CMD,
     DecisionMessage,
     ExperimentInfo,

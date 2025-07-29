@@ -1,13 +1,13 @@
 import socket
 
-from .cfg_parser import load_algorithm, load_app_config, load_lab_config
-from .manager import ConnectionManager, ExperimentManager
+from cfg_parser import load_algorithm, load_app_config, load_lab_config
+from manager import ConnectionManager, ExperimentManager
 
 
 class Context:
     def __init__(self):
         self.connection_manager = ConnectionManager()
-        self.port = 8000  # 确保与启动命令中的端口一致
+        self.port = 8000  # 在这里修改端口号
 
     def _initConfig(self):
         # 加载配置

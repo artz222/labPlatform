@@ -5,11 +5,10 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import ValidationError
 
-from src.cfg_parser import *
-from src.context import Context
-from src.model.cfg import *
-
-from .model.message import SocketMessage
+from cfg_parser import *
+from context import Context
+from model.cfg import *
+from model.message import SocketMessage
 
 context = Context()
 
@@ -80,8 +79,11 @@ async def websocket_endpoint(websocket: WebSocket):
             except ValidationError as e:
                 print(f"消息格式错误: {str(e)}")
                 continue
-
-            # await connection_manager.broadcast(f"Client says: {data}")
     except WebSocketDisconnect:
         context.connection_manager.disconnect(websocket)
-        # await connection_manager.broadcast(f"Client left the chat")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=context.port, reload=True)

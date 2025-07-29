@@ -4,9 +4,9 @@ import pprint
 
 import yaml
 
-from src.algorithm.base_algo import BaseAlgorithm
+from algorithm.base_algo import BaseAlgorithm
 
-from .model.cfg import AlgorithmConfig, AppConfig, LabConfig
+from model.cfg import AlgorithmConfig, AppConfig, LabConfig
 
 
 def load_lab_config(config_path: str) -> LabConfig:
