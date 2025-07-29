@@ -499,11 +499,14 @@ class ExperimentManager:
             # 针对所有下一轮参与者分别计算界面数据
             process_result_map = {}
 
-            # 初始化下一回合相关信息
+            # 回收当前回合提交设备信息
             self.cur_round_submit_devices.clear()
+            # 切换到下一回合
+            have_next_round = self._next_round()
+            # 初始化当前回合参与人员
             self._init_cur_round_participants()
-
-            if self._next_round() > 0:
+            
+            if have_next_round > 0:
                 for uid in self.cur_round_participants:
                     process_result_map[uid] = self.algorithm.process(
                         uuid=uid,

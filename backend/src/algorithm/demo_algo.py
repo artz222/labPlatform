@@ -2,8 +2,6 @@ from .base_algo import BaseAlgorithm
 
 
 class DemoAlgorithm(BaseAlgorithm):
-    # 队伍分组
-
     def process(
         self, uuid, submit_logs, cur_main_round, cur_sub_round
     ) -> dict[str, str]:
