@@ -165,8 +165,7 @@ class ExperimentManager:
         self.cur_sub_round += 1
         if self.cur_sub_round >= len(self.sub_rounds):
             if self.cur_main_round + 1 >= len(self.main_rounds):
-                self.cur_main_round += 1
-                self.cur_sub_round = 0
+                self.cur_sub_round -= 1 # 恢复子回合数，避免溢出
                 return -1
             self.cur_sub_round = 0
             self.cur_main_round += 1
