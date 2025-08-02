@@ -165,7 +165,7 @@ class ExperimentManager:
         self.cur_sub_round += 1
         if self.cur_sub_round >= len(self.sub_rounds):
             if self.cur_main_round + 1 >= len(self.main_rounds):
-                self.cur_sub_round -= 1 # 恢复子回合数，避免溢出
+                self.cur_sub_round -= 1  # 恢复子回合数，避免溢出
                 return -1
             self.cur_sub_round = 0
             self.cur_main_round += 1
@@ -417,6 +417,10 @@ class ExperimentManager:
         data = ExperimentInfo(
             infos=[
                 Info(
+                    hint="#info_group",
+                    value="基本信息",
+                ),
+                Info(
                     hint="实验轮数",
                     value=f"{self.cur_main_round+1}/{len(self.main_rounds)}",
                 ),
@@ -432,6 +436,71 @@ class ExperimentManager:
                     hint="你的角色",
                     value=self.experiment_devices[uuid]["role"][1],
                 ),
+                Info(
+                    hint="#info_group",
+                    value="历史信息",
+                ),
+                Info(
+                    hint="前一个大回合我军得分",
+                    value="0",
+                ),
+                Info(
+                    hint="前一个大回合本参谋得分",
+                    value="0",
+                ),
+                Info(
+                    hint="#info_group",
+                    value="统计信息",
+                ),
+                Info(
+                    hint="我军累计得分",
+                    value="0",
+                ),
+                Info(
+                    hint="本参谋累计得分",
+                    value="0",
+                ),
+                 Info(
+                    hint="我军累计得分",
+                    value="0",
+                ),
+                Info(
+                    hint="本参谋累计得分",
+                    value="0",
+                ),
+                 Info(
+                    hint="我军累计得分",
+                    value="0",
+                ),
+                Info(
+                    hint="本参谋累计得分",
+                    value="0",
+                ),
+                 Info(
+                    hint="我军累计得分",
+                    value="0",
+                ),
+                Info(
+                    hint="本参谋累计得分",
+                    value="0",
+                ),
+                 Info(
+                    hint="我军累计得分",
+                    value="0",
+                ),
+                Info(
+                    hint="本参谋累计得分",
+                    value="0",
+                ),
+                 Info(
+                    hint="我军累计得分",
+                    value="0",
+                ),
+                Info(
+                    hint="本参谋累计得分",
+                    value="0",
+                ),
+
             ],
             images=[
                 Image(imageUrl=self._generate_pic_url(name))
@@ -441,7 +510,7 @@ class ExperimentManager:
                 options=self.sub_rounds[self.cur_sub_round].decision.options
             ),
         )
-        if process_result.items():
+        if process_result is not None and process_result.items():
             data.infos.extend(
                 [Info(hint=key, value=value) for key, value in process_result.items()]
             )
@@ -504,7 +573,7 @@ class ExperimentManager:
             have_next_round = self._next_round()
             # 初始化当前回合参与人员
             self._init_cur_round_participants()
-            
+
             if have_next_round > 0:
                 for uid in self.cur_round_participants:
                     process_result_map[uid] = self.algorithm.process(

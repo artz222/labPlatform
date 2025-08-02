@@ -1,19 +1,15 @@
 ---
 algorithm:
-  class_name: DemoAlgorithm
-  module: algorithm.demo_algo
+  class_name: BaseAlgorithm
+  module: algorithm.base_algo
 # 分组
 groups:
   - name: A
     roles:
       - name: 统帅
-        num: 3
-      - name: 参谋
         num: 1
   - name: B
     roles:
-      - name: 统帅
-        num: 3
       - name: 参谋
         num: 1
 hint_pics:
