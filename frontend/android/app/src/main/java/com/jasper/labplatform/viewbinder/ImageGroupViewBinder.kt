@@ -8,12 +8,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.drakeet.multitype.ItemViewBinder
 import com.jasper.labplatform.R
 import com.jasper.labplatform.repository.model.Image
 import com.jasper.labplatform.utils.ext.dpToPx
 import com.jasper.labplatform.utils.getGroupColor
+import com.jasper.labplatform.utils.loadImage
 import com.jasper.labplatform.utils.setRoundedBackground
 import com.jasper.labplatform.view.ImageZoomDialogFragment
 
@@ -51,16 +51,12 @@ class ImageGroupViewBinder : ItemViewBinder<List<Image>, ImageGroupViewBinder.Vi
         val image = ImageView(context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                100.dpToPx()
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            setPadding(0, 0, 0, 5.dpToPx())
+            setPadding(0, 0, 0, 10.dpToPx())
         }
 
-        Glide.with(context)
-            .load(imageUrl)
-//            .placeholder(R.drawable.placeholder_image)
-//            .error(R.drawable.error_image)
-            .into(image)
+        loadImage(imageUrl, image)
 
         image.setOnClickListener {
             val fragmentManager =

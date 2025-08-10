@@ -436,71 +436,6 @@ class ExperimentManager:
                     hint="你的角色",
                     value=self.experiment_devices[uuid]["role"][1],
                 ),
-                Info(
-                    hint="#info_group",
-                    value="历史信息",
-                ),
-                Info(
-                    hint="前一个大回合我军得分",
-                    value="0",
-                ),
-                Info(
-                    hint="前一个大回合本参谋得分",
-                    value="0",
-                ),
-                Info(
-                    hint="#info_group",
-                    value="统计信息",
-                ),
-                Info(
-                    hint="我军累计得分",
-                    value="0",
-                ),
-                Info(
-                    hint="本参谋累计得分",
-                    value="0",
-                ),
-                 Info(
-                    hint="我军累计得分",
-                    value="0",
-                ),
-                Info(
-                    hint="本参谋累计得分",
-                    value="0",
-                ),
-                 Info(
-                    hint="我军累计得分",
-                    value="0",
-                ),
-                Info(
-                    hint="本参谋累计得分",
-                    value="0",
-                ),
-                 Info(
-                    hint="我军累计得分",
-                    value="0",
-                ),
-                Info(
-                    hint="本参谋累计得分",
-                    value="0",
-                ),
-                 Info(
-                    hint="我军累计得分",
-                    value="0",
-                ),
-                Info(
-                    hint="本参谋累计得分",
-                    value="0",
-                ),
-                 Info(
-                    hint="我军累计得分",
-                    value="0",
-                ),
-                Info(
-                    hint="本参谋累计得分",
-                    value="0",
-                ),
-
             ],
             images=[
                 Image(imageUrl=self._generate_pic_url(name))
@@ -510,9 +445,19 @@ class ExperimentManager:
                 options=self.sub_rounds[self.cur_sub_round].decision.options
             ),
         )
-        if process_result is not None and process_result.items():
+        if process_result is not None and process_result.get("infos", []):
             data.infos.extend(
-                [Info(hint=key, value=value) for key, value in process_result.items()]
+                [
+                    Info(hint=key, value=value)
+                    for key, value in process_result.get("infos", [])
+                ]
+            )
+        if process_result is not None and process_result.get("images", []):
+            data.images.extend(
+                [
+                    Image(imageUrl=self._generate_pic_url(name))
+                    for name in process_result.get("images", [])
+                ]
             )
         socketMessage = SocketMessage(
             cmd=CMD.UPDATE_EXPERIMENT_INFO,

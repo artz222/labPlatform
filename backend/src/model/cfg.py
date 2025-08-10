@@ -83,6 +83,7 @@ class LabConfig(BaseModel):
     groups: List[GroupConfig]
     main_rounds: List[MainRoundConfig]
     algorithm: AlgorithmConfig
+    hint_pics_path: str = None
     hint_pics: List[str] = None
 
 

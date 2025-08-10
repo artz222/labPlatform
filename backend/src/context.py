@@ -2,12 +2,14 @@ import socket
 
 from cfg_parser import load_algorithm, load_app_config, load_lab_config
 from manager import ConnectionManager, ExperimentManager
+from model.cfg import LabConfig
 
 
 class Context:
     def __init__(self):
         self.connection_manager = ConnectionManager()
         self.port = 8000  # 在这里修改端口号
+        self.lab_config: LabConfig = None
 
     def _initConfig(self):
         # 加载配置

@@ -1,7 +1,7 @@
 ---
 algorithm:
-  class_name: DemoAlgorithm
-  module: algorithm.demo_algo
+  class_name: CorpsFightAlgorithm
+  module: algorithm.corps_fight_algo
 # 分组
 groups:
   - name: A

@@ -16,6 +16,7 @@ mmkv = "2.2.2"
 multitype = "4.3.0"
 photoview = "2.3.0"
 core = "1.16.0"
+xpopup = "2.10.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +34,7 @@ mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
 multitype = { module = "com.drakeet.multitype:multitype", version.ref = "multitype" }
 photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photoview" }
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
+xpopup = { module = "com.github.li-xiaojun:XPopup", version.ref = "xpopup" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,7 +1,7 @@
 ---
 algorithm:
-  class_name: BaseAlgorithm
-  module: algorithm.base_algo
+  class_name: TestAlgorithm
+  module: algorithm.test_algo
 # 分组
 groups:
   - name: A
@@ -12,8 +12,11 @@ groups:
     roles:
       - name: 参谋
         num: 1
+        hint_pics:
+hint_pics_path: lab/test
 hint_pics:
   - 1.png
+  - 2.png
 # 大回合数
 main_rounds:
   - repeat: 10
@@ -42,7 +45,7 @@ main_rounds:
             - roles:
                 - 统帅
           options:
-            - 战场1
-            - 战场2
+            - 战场111
+            - 战场211
         hint: 前一个大回合的派兵分布（战场1敌我人数、战场2敌我人数），前一个大回合我军得分，前一个大回合本统帅得分，我军累计得分，本统帅累计得分，本大回合中小回合1中我军派兵分布，本大回合中小回合1中敌军派兵分布（如果参谋没有买信息，则不显示）
         repeat: 1
