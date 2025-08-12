@@ -165,7 +165,7 @@ class ExperimentManager:
         self.cur_sub_round += 1
         if self.cur_sub_round >= len(self.sub_rounds):
             if self.cur_main_round + 1 >= len(self.main_rounds):
-                self.cur_sub_round -= 1 # 恢复子回合数，避免溢出
+                self.cur_sub_round -= 1  # 恢复子回合数，避免溢出
                 return -1
             self.cur_sub_round = 0
             self.cur_main_round += 1
@@ -418,6 +418,10 @@ class ExperimentManager:
         data = ExperimentInfo(
             infos=[
                 Info(
+                    hint="#info_group",
+                    value="基本信息",
+                ),
+                Info(
                     hint="实验轮数",
                     value=f"{self.cur_main_round+1}/{len(self.main_rounds)}",
                 ),
@@ -442,9 +446,19 @@ class ExperimentManager:
                 options=self.sub_rounds[self.cur_sub_round].decision.options
             ),
         )
-        if process_result.items():
+        if process_result is not None and process_result.get("infos", []):
             data.infos.extend(
-                [Info(hint=key, value=value) for key, value in process_result.items()]
+                [
+                    Info(hint=key, value=value)
+                    for key, value in process_result.get("infos", [])
+                ]
+            )
+        if process_result is not None and process_result.get("images", []):
+            data.images.extend(
+                [
+                    Image(imageUrl=self._generate_pic_url(name))
+                    for name in process_result.get("images", [])
+                ]
             )
         socketMessage = SocketMessage(
             cmd=CMD.UPDATE_EXPERIMENT_INFO,
@@ -505,7 +519,7 @@ class ExperimentManager:
             have_next_round = self._next_round()
             # 初始化当前回合参与人员
             self._init_cur_round_participants()
-            
+
             if have_next_round > 0:
                 for uid in self.cur_round_participants:
                     process_result_map[uid] = self.algorithm.process(

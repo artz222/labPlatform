@@ -21,12 +21,18 @@ import com.jasper.labplatform.repository.model.Options
 import com.jasper.labplatform.utils.ext.dpToPx
 
 class RadioGroupItemViewBinder : ItemViewBinder<Options, RadioGroupItemViewBinder.ViewHolder>() {
+    var lastData: Options? = null
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val radioGroup: RadioGroup = itemView.findViewById(R.id.radioGroup)
         val submitBtn: Button = itemView.findViewById(R.id.submitBtn)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, item: Options) {
+        if (lastData == item) {
+            return
+        }
+        lastData = item
         holder.apply {
             radioGroup.removeAllViews()
             radioGroup.clearCheck()

@@ -5,23 +5,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.drakeet.multitype.ItemViewBinder
-import com.jasper.labplatform.utils.ext.dpToPx
-import com.jasper.labplatform.view.ImageZoomDialogFragment
 import com.jasper.labplatform.repository.model.Image
+import com.jasper.labplatform.utils.ext.dpToPx
+import com.jasper.labplatform.utils.loadImage
+import com.jasper.labplatform.view.ImageZoomDialogFragment
 
 class ImageItemViewBinder : ItemViewBinder<Image, ImageItemViewBinder.ViewHolder>() {
+    var lastData: Image? = null
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     override fun onBindViewHolder(holder: ViewHolder, item: Image) {
+        if (lastData == item) {
+            return
+        }
+        lastData = item
         val imageUrl = item.imageUrl
 
-        Glide.with(holder.itemView.context)
-            .load(imageUrl)
-//            .placeholder(R.drawable.placeholder_image)
-//            .error(R.drawable.error_image)
-            .into(holder.itemView as ImageView)
+        loadImage(imageUrl, holder.itemView as ImageView)
 
         holder.itemView.setOnClickListener {
             val fragmentManager =
@@ -41,9 +43,9 @@ class ImageItemViewBinder : ItemViewBinder<Image, ImageItemViewBinder.ViewHolder
         return ViewHolder(ImageView(inflater.context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                100.dpToPx()
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            setPadding(0, 0, 0, 5.dpToPx())
+            setPadding(10.dpToPx(), 0, 10.dpToPx(), 5.dpToPx())
         })
     }
 }

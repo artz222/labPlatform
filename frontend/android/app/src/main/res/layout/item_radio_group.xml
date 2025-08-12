@@ -21,5 +21,6 @@
         android:text="@string/submit"
         android:textColor="@color/black"
         android:textSize="14sp"
+        android:textStyle="bold"
         app:cornerRadius="5dp" />
 </LinearLayout>

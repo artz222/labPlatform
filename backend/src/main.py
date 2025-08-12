@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -9,6 +10,11 @@ from cfg_parser import *
 from context import Context
 from model.cfg import *
 from model.message import SocketMessage
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 context = Context()
 
@@ -37,10 +43,14 @@ async def root():
 
 
 @app.get("/images/{image_name}")
-async def get_image(image_name: str):
+async def get_image(image_name: str, t: str = None):
     # 构建图片文件的绝对路径
-    assets_dir = Path(__file__).parent.parent / "assets"
+    logger.info(f"Image name: {image_name}")
+    assets_dir = (
+        Path(__file__).parent.parent / "assets" / context.lab_config.hint_pics_path
+    )
     image_path = assets_dir / image_name
+    logger.info(f"Image path: {image_path}")
 
     # 检查文件是否存在
     if not image_path.exists():
@@ -64,7 +74,15 @@ async def get_image(image_name: str):
     if not media_type:
         raise HTTPException(status_code=400, detail=f"不支持的图片格式: {ext}")
 
-    return FileResponse(str(image_path), media_type=media_type)
+    return FileResponse(
+        str(image_path),
+        media_type=media_type,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 @app.websocket("/ws")
@@ -86,4 +104,11 @@ async def websocket_endpoint(websocket: WebSocket):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=context.port, reload=True)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=context.port,
+        reload=True,
+        access_log=True,
+        log_level="info",
+    )

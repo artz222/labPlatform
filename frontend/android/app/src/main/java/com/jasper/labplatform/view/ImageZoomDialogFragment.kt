@@ -13,9 +13,9 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
-import com.bumptech.glide.Glide
 import com.github.chrisbanes.photoview.PhotoView
 import com.jasper.labplatform.R
+import com.jasper.labplatform.utils.loadImage
 
 class ImageZoomDialogFragment : DialogFragment() {
 
@@ -65,13 +65,9 @@ class ImageZoomDialogFragment : DialogFragment() {
         val imageUriString = arguments?.getString(ARG_IMAGE_URI)
 
         if (imageUrl != null) {
-            Glide.with(this)
-                .load(imageUrl)
-                .into(photoView)
+            loadImage(imageUrl, photoView)
         } else if (imageUriString != null) {
-            Glide.with(this)
-                .load(imageUriString.toUri())
-                .into(photoView)
+            loadImage(imageUriString.toUri(), photoView)
         } else {
             // Handle error or show placeholder
             // photoView.setImageResource(R.drawable.error_image) // Example

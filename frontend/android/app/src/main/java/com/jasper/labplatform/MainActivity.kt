@@ -13,10 +13,15 @@ import com.jasper.labplatform.repository.Repository
 import com.jasper.labplatform.repository.model.Empty
 import com.jasper.labplatform.repository.model.ExperimentInfo
 import com.jasper.labplatform.repository.model.ExperimentStatus
+import com.jasper.labplatform.repository.model.Info
+import com.jasper.labplatform.repository.model.InfoGroup
 import com.jasper.labplatform.repository.model.Title
+import com.jasper.labplatform.utils.getGroupColor
 import com.jasper.labplatform.utils.showIpInputDialog
 import com.jasper.labplatform.viewbinder.EmptyItemViewBinder
+import com.jasper.labplatform.viewbinder.ImageGroupViewBinder
 import com.jasper.labplatform.viewbinder.ImageItemViewBinder
+import com.jasper.labplatform.viewbinder.InfoGroupViewBinder
 import com.jasper.labplatform.viewbinder.InfoItemViewBinder
 import com.jasper.labplatform.viewbinder.RadioGroupItemViewBinder
 import com.jasper.labplatform.viewbinder.TitleItemViewBinder
@@ -60,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     private fun initView() {
         mAdapter.apply {
             register(TitleItemViewBinder())
+            register(ImageGroupViewBinder())
+            register(InfoGroupViewBinder())
             register(InfoItemViewBinder())
             register(RadioGroupItemViewBinder())
             register(ImageItemViewBinder())
@@ -77,12 +84,32 @@ class MainActivity : AppCompatActivity() {
             when (data.expStatus) {
                 ExperimentStatus.RUNNING -> {
                     add(Title(title = "可以公开的情报"))
-                    data.infos.forEach {
-                        add(it)
+                    // 处理信息分组
+                    var index = 0
+                    var colorIndex = 0
+                    while (index < data.infos.size) {
+                        val info = data.infos[index++]
+                        if (info.hint == "#info_group") {
+                            val groupTitle = info.value
+                            val groupInfos = arrayListOf<Info>()
+                            val group =
+                                InfoGroup(groupTitle, groupInfos, getGroupColor(colorIndex++))
+                            add(group)
+                            while (index < data.infos.size) {
+                                val nextInfo = data.infos[index++]
+                                if (nextInfo.hint == "#info_group") {
+                                    index--
+                                    break
+                                }
+                                groupInfos.add(nextInfo)
+                            }
+                        } else {
+                            add(info)
+                        }
                     }
-                    for (image in data.images) {
-                        add(image)
-                    }
+                    // 处理图片数据
+                    add(data.images)
+                    // 处理选项数据
                     add(Title(title = "请选择"))
                     add(data.options)
                     add(Empty(0, 20))

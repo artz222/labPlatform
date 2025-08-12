@@ -2,7 +2,7 @@
 
 **若想修改端口号，只需在Context类中修改port字段：**
 
-![screenshot](assets/screenshot-20250729-142202.png)
+![screenshot](assets/readme/screenshot-20250729-142202.png)
 
 ### macos/linux 系统
 

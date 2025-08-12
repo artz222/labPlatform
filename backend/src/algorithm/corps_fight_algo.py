@@ -1,7 +1,7 @@
 from .base_algo import BaseAlgorithm
 
 
-class DemoAlgorithm(BaseAlgorithm):
+class CorpsFightAlgorithm(BaseAlgorithm):
     # todo 增加最后一轮计算方式
     def process(
         self, uuid, submit_logs, cur_main_round, cur_sub_round, is_last_round
@@ -379,12 +379,11 @@ class DemoAlgorithm(BaseAlgorithm):
                 idx3 = cur_main_round * num_sub_rounds - 1
                 round3 = submit_logs[idx3] if idx3 < len(submit_logs) else {}
                 current_score = calculate_round_score(cur_main_round - 1, streak_counts)
+                result["#info_group"] = "历史信息"
                 result["前一个大回合我军得分"] = str(current_score[my_team])
                 result["前一个大回合本统帅得分"] = str(
                     tongshuai_per_round.get(cur_main_round - 1, {}).get(uuid, 0)
                 )
-                result["我军累计得分"] = str(cumulative_scores[my_team])
-                result["本统帅累计得分"] = str(tongshuai_cumulative.get(uuid, 0))
                 result["前一个大回合我军战场1人数"] = str(
                     count_battle(round3, my_team, "战场1")
                 )
@@ -400,6 +399,9 @@ class DemoAlgorithm(BaseAlgorithm):
                 result["前一个大回合本统帅最终选择"] = find_tongshuai_choice(
                     uuid, cur_main_round - 1, 2
                 )
+                result["#info_group"] = "统计信息"
+                result["我军累计得分"] = str(cumulative_scores[my_team])
+                result["本统帅累计得分"] = str(tongshuai_cumulative.get(uuid, 0))
                 result["当前我军战场1连胜数"] = str(streak_counts[my_team]["战场1"])
                 result["当前我军战场2连胜数"] = str(streak_counts[my_team]["战场2"])
             elif my_role == "参谋":
@@ -412,10 +414,13 @@ class DemoAlgorithm(BaseAlgorithm):
                     submit_logs[idx2].get(uuid, {}).get("decision", "")
                 )  # 前一个大回和参谋决策
                 last_score = calculate_round_score(cur_main_round - 1, streak_counts)
+                result["#info_group"] = "历史信息"
                 result["前一个大回合我军得分"] = str(last_score[my_team])
                 result["前一个大回合本参谋得分"] = str(
                     canmou_per_round.get(cur_main_round - 1, {}).get(uuid, 0)
                 )
+                result["前一个大回合本参谋选择"] = advisor_decision
+                result["#info_group"] = "统计信息"
                 result["我军累计得分"] = str(cumulative_scores[my_team])
                 result["本参谋累计得分"] = str(canmou_cumulative.get(uuid, 0))
                 result["前一个大回合本参谋选择"] = advisor_decision
