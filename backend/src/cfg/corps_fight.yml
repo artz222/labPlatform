@@ -16,11 +16,13 @@ groups:
         num: 3
       - name: 参谋
         num: 1
+hint_pics_path: lab/corps_fight
 hint_pics:
   - 1.png
+  - 2.png
 # 大回合数
 main_rounds:
-  - repeat: 10
+  - repeat: 3
     # 小回合数
     sub_rounds:
       - decision:
