@@ -1,21 +1,21 @@
 import socket
 
-from cfg_parser import load_algorithm, load_app_config, load_lab_config
+from cfg_parser import load_algorithm, load_app_config, load_lab_exp_config
 from manager import ConnectionManager, ExperimentManager
-from model.cfg import LabConfig
+from model.cfg import LabExpConfig
 
 
 class Context:
     def __init__(self):
         self.connection_manager = ConnectionManager()
         self.port = 8000  # 在这里修改端口号
-        self.lab_config: LabConfig = None
+        self.exp_config: LabExpConfig = None
 
     def _initConfig(self):
         # 加载配置
         self.app_config = load_app_config()
-        self.lab_config = load_lab_config(self.app_config.lab_cfg_path)
-        self._algorithm = load_algorithm(self.lab_config.algorithm)
+        self.exp_config = load_lab_exp_config(self.app_config.lab_cfg_path)
+        self._algorithm = load_algorithm(self.exp_config.algorithm)
 
     def _get_local_ip(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -38,7 +38,7 @@ class Context:
         print(f"请在客户端使用此IP和端口连接服务")
 
         self.experiment_manager = ExperimentManager(
-            self.lab_config,
+            self.exp_config,
             self.connection_manager,
             self._algorithm,
             self.local_ip,

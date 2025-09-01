@@ -1,11 +1,12 @@
 import copy
+import json
 import typing
 import uuid
 
 from fastapi import WebSocket
 
 from algorithm.base_algo import BaseAlgorithm
-from model.cfg import LabConfig, MainRoundConfig, SubRoundConfig
+from model.cfg import LabExpConfig, MainRoundConfig, SubRoundConfig
 from model.message import (
     CMD,
     DecisionMessage,
@@ -16,6 +17,7 @@ from model.message import (
     Options,
     SocketMessage,
 )
+from utils.json_to_file import save_str_to_json
 
 
 class ConnectionManager:
@@ -45,7 +47,7 @@ class ConnectionManager:
 class ExperimentManager:
     def __init__(
         self,
-        lab_cfg: LabConfig,
+        exp_cfg: LabExpConfig,
         connection_manager: ConnectionManager,
         algorithm: BaseAlgorithm,
         local_ip: str,
@@ -74,7 +76,7 @@ class ExperimentManager:
         self.connection_manager = connection_manager
         self.cur_main_round = 0
         self.cur_sub_round = 0
-        self.lab_cfg = lab_cfg
+        self.exp_cfg = exp_cfg
 
         self.experiment_devices = {}
         """
@@ -90,6 +92,33 @@ class ExperimentManager:
                 "websocket": WebSocket, # 设备的websocket连接对象
             },
         }
+        """
+
+        self.exp_message_logs = []
+        """
+        维护所有回合的消息日志
+
+        列表结构
+        [
+            # 第1回合
+            {
+                "uuid1": {
+                    "message": str, # 保存的本设备当前回合的消息
+                },
+                "uuid2": {
+                    "message": str, # 保存的本设备当前回合的消息
+                },
+            },
+            # 第2回合
+            {
+                "uuid1": {
+                    "message": str, # 保存的本设备当前回合的消息
+                },
+                "uuid2": {
+                    "message": str, # 保存的本设备当前回合的消息
+                },
+            },
+        ]
         """
 
         self.submit_logs = []
@@ -181,7 +210,7 @@ class ExperimentManager:
         """
 
         size = 0
-        for group in self.lab_cfg.groups:
+        for group in self.exp_cfg.groups:
             for role in group.roles:
                 size += role.num
         return size
@@ -195,7 +224,7 @@ class ExperimentManager:
         """
 
         main_rounds = []
-        for main_round in self.lab_cfg.main_rounds:
+        for main_round in self.exp_cfg.main_rounds:
             for _ in range(main_round.repeat):
                 main_rounds.append(main_round)
         return main_rounds
@@ -261,7 +290,7 @@ class ExperimentManager:
             int: 组别角色实验人数
         """
         num = 0
-        for group in self.lab_cfg.groups:
+        for group in self.exp_cfg.groups:
             if groups is None or group.name in groups:
                 for role in group.roles:
                     if roles is None or role.name in roles:
@@ -300,7 +329,7 @@ class ExperimentManager:
 
         cur_devices_num = len(self.experiment_devices)
         num = 0
-        for group in self.lab_cfg.groups:
+        for group in self.exp_cfg.groups:
             for role in group.roles:
                 if num + role.num > cur_devices_num:
                     return (group.name, role.name)
@@ -388,6 +417,8 @@ class ExperimentManager:
             process_result_map (dict[str, dict[str, str]]): 上回合处理结果，每个参与者的结果
         """
 
+        # 初始化当前回合的消息日志
+        message_log = {}
         # 下发实验信息
         for uuid in self.cur_round_participants:
             # 获取每个人自己的界面数据
@@ -396,10 +427,15 @@ class ExperimentManager:
             self.experiment_devices[uuid][
                 "cur_message"
             ] = socketMessage.model_dump_json()
+            message_log[uuid] = {
+                "message": socketMessage.model_dump(),
+            }
             await self.connection_manager.send_message(
                 socketMessage.model_dump_json(),
                 self.experiment_devices[uuid]["websocket"],
             )
+        # 记录当前回合的消息日志
+        self.exp_message_logs.append(message_log)
 
     def _generate_exp_info_message(
         self, uuid, process_result: dict[str, str]
@@ -439,7 +475,7 @@ class ExperimentManager:
             ],
             images=[
                 Image(imageUrl=self._generate_pic_url(name))
-                for name in self.lab_cfg.hint_pics
+                for name in self.exp_cfg.hint_pics
             ],
             options=Options(
                 options=self.sub_rounds[self.cur_sub_round].decision.options
@@ -530,17 +566,53 @@ class ExperimentManager:
                 await self._start_cur_round(process_result_map)
             else:
                 print("===================最后一回合数据处理====================")
-                for uid in self.cur_round_participants:
-                    process_result_map[uid] = self.algorithm.process(
-                        uuid=uid,
-                        submit_logs=self.submit_logs,
-                        cur_main_round=self.cur_main_round,
-                        cur_sub_round=self.cur_sub_round,
-                    )
+                # 保存实验日志到本地文件
+                self._save_exp_logs()
                 print("===================实验结束====================")
+                # 实验结束 广播实验结束消息
                 for value in self.experiment_devices.values():
                     value["cur_message"] = self._exp_end_msg
                 await self.connection_manager.broadcast(self._exp_end_msg)
+
+    def _save_exp_logs(self):
+        """
+        保存实验日志
+        """
+
+        # 初始化最后一个回合的消息日志
+        message_log = {}
+        for uid in self.cur_round_participants:
+            user_result = self.algorithm.process(
+                uuid=uid,
+                submit_logs=self.submit_logs,
+                cur_main_round=self.cur_main_round,
+                cur_sub_round=self.cur_sub_round,
+            )
+            socketMessage = self._generate_exp_info_message(uid, user_result)
+            message_log[uid] = {
+                "message": socketMessage.model_dump(),
+            }
+        # 记录最后一个回合的消息日志
+        self.exp_message_logs.append(message_log)
+
+        # 把其中的str反解到json格式，再保存到本地json文件中，利于分析
+        for log in self.exp_message_logs:
+            log: dict
+            for uid, msg in log.items():
+                msg["message"]["data"] = ExperimentInfo.model_validate_json(
+                    msg["message"]["data"]
+                ).model_dump()
+
+        json_string = json.dumps(self.exp_message_logs, ensure_ascii=False, indent=2)
+        save_str_to_json(
+            json_string,
+            f"../log/{self.exp_cfg.lab_exp_name}/exp_log_message.json",
+        )
+        json_string = json.dumps(self.submit_logs, ensure_ascii=False, indent=2)
+        save_str_to_json(
+            json_string,
+            f"../log/{self.exp_cfg.lab_exp_name}/exp_log_decision.json",
+        )
 
 
 __all__ = ["ConnectionManager", "ExperimentManager"]

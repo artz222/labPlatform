@@ -6,10 +6,10 @@ import yaml
 
 from algorithm.base_algo import BaseAlgorithm
 
-from model.cfg import AlgorithmConfig, AppConfig, LabConfig
+from model.cfg import AlgorithmConfig, AppConfig, LabExpConfig
 
 
-def load_lab_config(config_path: str) -> LabConfig:
+def load_lab_exp_config(config_path: str) -> LabExpConfig:
     """加载并解析实验配置文件
 
     Args:
@@ -29,10 +29,10 @@ def load_lab_config(config_path: str) -> LabConfig:
         raise FileNotFoundError(f"实验配置文件不存在: {cfg_path}")
 
     with open(config_path, "r", encoding="utf-8") as f:
-        lab_config = yaml.safe_load(f)
+        lab_exp_config = yaml.safe_load(f)
         print("成功加载实验配置:")
-        pprint.pprint(lab_config)
-    return LabConfig(**lab_config)
+        pprint.pprint(lab_exp_config)
+    return LabExpConfig(**lab_exp_config)
 
 
 def load_app_config() -> AppConfig:
@@ -81,4 +81,4 @@ def load_algorithm(cfg: AlgorithmConfig) -> BaseAlgorithm:
     return obj
 
 
-__all__ = ["load_app_config", "load_lab_config"]
+__all__ = ["load_app_config", "load_lab_exp_config"]

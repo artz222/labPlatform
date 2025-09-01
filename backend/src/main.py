@@ -47,7 +47,7 @@ async def get_image(image_name: str, t: str = None):
     # 构建图片文件的绝对路径
     logger.info(f"Image name: {image_name}")
     assets_dir = (
-        Path(__file__).parent.parent / "assets" / context.lab_config.hint_pics_path
+        Path(__file__).parent.parent / "assets" / context.exp_config.hint_pics_path
     )
     image_path = assets_dir / image_name
     logger.info(f"Image path: {image_path}")
