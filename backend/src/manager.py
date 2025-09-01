@@ -1,5 +1,6 @@
 import copy
 import json
+import time
 import typing
 import uuid
 
@@ -604,14 +605,15 @@ class ExperimentManager:
                 ).model_dump()
 
         json_string = json.dumps(self.exp_message_logs, ensure_ascii=False, indent=2)
+        time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         save_str_to_json(
             json_string,
-            f"../log/{self.exp_cfg.lab_exp_name}/exp_log_message.json",
+            f"../log/{self.exp_cfg.lab_exp_name}/{time_stamp}/exp_log_message.json",
         )
         json_string = json.dumps(self.submit_logs, ensure_ascii=False, indent=2)
         save_str_to_json(
             json_string,
-            f"../log/{self.exp_cfg.lab_exp_name}/exp_log_decision.json",
+            f"../log/{self.exp_cfg.lab_exp_name}/{time_stamp}/exp_log_decision.json",
         )
 
 
