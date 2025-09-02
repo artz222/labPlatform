@@ -13,7 +13,6 @@ groups:
     roles:
       - name: 参谋
         num: 1
-        hint_pics:
 hint_pics_path: exp/test
 hint_pics:
   - 1.png

@@ -36,29 +36,28 @@ windows 系统也可以使用 powershell 环境进行 uv 环境激活，使用�
 
 ### 实验配置文件字段说明
 
-| 字段                                               | 说明                 | 类型   | 示例值                                                             |
-| -------------------------------------------------- | -------------------- | ------ | ------------------------------------------------------------------ |
-| lab_exp_name                                       | 实验名称             | 字符串 | test                                                               |
-| algorithm                                          | 算法配置             | 对象   | `{"class_name": "TestAlgorithm", "module": "algorithm.test_algo"}` |
-| algorithm.class_name                               | 算法类名             | 字符串 | TestAlgorithm                                                      |
-| algorithm.module                                   | 算法模块路径         | 字符串 | algorithm.test_algo                                                |
-| groups                                             | 分组配置             | 数组   | `[{"name": "A", "roles": [...]}, {"name": "B", "roles": [...]}]`   |
-| groups[].name                                      | 组名                 | 字符串 | A, B                                                               |
-| groups[].roles                                     | 角色配置             | 数组   | `[{"name": "统帅", "num": 1}]`                                     |
-| groups[].roles[].name                              | 角色名               | 字符串 | 统帅, 参谋                                                         |
-| groups[].roles[].num                               | 角色数量             | 整数   | 1                                                                  |
-| groups[].roles[].hint_pics                         | 角色提示图片（可选） | 对象   | （空或具体配置）                                                   |
-| hint_pics_path                                     | 提示图片路径         | 字符串 | exp/test                                                           |
-| hint_pics                                          | 提示图片列表         | 数组   | `["1.png", "2.png"]`                                               |
-| main_rounds                                        | 大回合配置           | 数组   | `[{"repeat": 1, "sub_rounds": [...]}]`                             |
-| main_rounds[].repeat                               | 大回合重复次数       | 整数   | 1                                                                  |
-| main_rounds[].sub_rounds                           | 小回合配置           | 数组   | （包含多个小回合配置）                                             |
-| main_rounds[].sub_rounds[].decision                | 决策配置             | 对象   | `{"makers": [...], "options": [...]}`                              |
-| main_rounds[].sub_rounds[].decision.makers         | 决策者配置           | 数组   | `[{"roles": ["统帅"]}]`                                            |
-| main_rounds[].sub_rounds[].decision.makers[].roles | 决策者角色列表       | 数组   | `["统帅", "参谋"]`                                                 |
-| main_rounds[].sub_rounds[].decision.options        | 决策选项列表         | 数组   | `["购买", "不购买"]`                                               |
-| main_rounds[].sub_rounds[].hint                    | 提示信息             | 字符串 | 前一个大回合的派兵分布...                                          |
-| main_rounds[].sub_rounds[].repeat                  | 小回合重复次数       | 整数   | 1                                                                  |
+| 字段                                               | 说明           | 类型   | 示例值                                                             |
+| -------------------------------------------------- | -------------- | ------ | ------------------------------------------------------------------ |
+| lab_exp_name                                       | 实验名称       | 字符串 | test                                                               |
+| algorithm                                          | 算法配置       | 对象   | `{"class_name": "TestAlgorithm", "module": "algorithm.test_algo"}` |
+| algorithm.class_name                               | 算法类名       | 字符串 | TestAlgorithm                                                      |
+| algorithm.module                                   | 算法模块路径   | 字符串 | algorithm.test_algo                                                |
+| groups                                             | 分组配置       | 数组   | `[{"name": "A", "roles": [...]}, {"name": "B", "roles": [...]}]`   |
+| groups[].name                                      | 组名           | 字符串 | A, B                                                               |
+| groups[].roles                                     | 角色配置       | 数组   | `[{"name": "统帅", "num": 1}]`                                     |
+| groups[].roles[].name                              | 角色名         | 字符串 | 统帅, 参谋                                                         |
+| groups[].roles[].num                               | 角色数量       | 整数   | 1                                                                  |
+| hint_pics_path                                     | 提示图片路径   | 字符串 | exp/test                                                           |
+| hint_pics                                          | 提示图片列表   | 数组   | `["1.png", "2.png"]`                                               |
+| main_rounds                                        | 大回合配置     | 数组   | `[{"repeat": 1, "sub_rounds": [...]}]`                             |
+| main_rounds[].repeat                               | 大回合重复次数 | 整数   | 1                                                                  |
+| main_rounds[].sub_rounds                           | 小回合配置     | 数组   | （包含多个小回合配置）                                             |
+| main_rounds[].sub_rounds[].decision                | 决策配置       | 对象   | `{"makers": [...], "options": [...]}`                              |
+| main_rounds[].sub_rounds[].decision.makers         | 决策者配置     | 数组   | `[{"roles": ["统帅"]}]`                                            |
+| main_rounds[].sub_rounds[].decision.makers[].roles | 决策者角色列表 | 数组   | `["统帅", "参谋"]`                                                 |
+| main_rounds[].sub_rounds[].decision.options        | 决策选项列表   | 数组   | `["购买", "不购买"]`                                               |
+| main_rounds[].sub_rounds[].hint                    | 提示信息       | 字符串 | 前一个大回合的派兵分布...                                          |
+| main_rounds[].sub_rounds[].repeat                  | 小回合重复次数 | 整数   | 1                                                                  |
 
 ## 实验 log
 
