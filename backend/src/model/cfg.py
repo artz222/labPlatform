@@ -75,11 +75,12 @@ class AlgorithmConfig(BaseModel):
     class_name: str = None
 
 
-class LabConfig(BaseModel):
+class LabExpConfig(BaseModel):
     """
     实验配置
     """
 
+    lab_exp_name: str
     groups: List[GroupConfig]
     main_rounds: List[MainRoundConfig]
     algorithm: AlgorithmConfig
@@ -87,4 +88,4 @@ class LabConfig(BaseModel):
     hint_pics: List[str] = None
 
 
-__all__ = ["AppConfig", "LabConfig"]
+__all__ = ["AppConfig", "LabExpConfig"]

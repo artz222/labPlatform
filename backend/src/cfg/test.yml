@@ -1,4 +1,5 @@
 ---
+lab_exp_name: test
 algorithm:
   class_name: TestAlgorithm
   module: algorithm.test_algo
@@ -12,14 +13,13 @@ groups:
     roles:
       - name: 参谋
         num: 1
-        hint_pics:
-hint_pics_path: lab/test
+hint_pics_path: exp/test
 hint_pics:
   - 1.png
   - 2.png
 # 大回合数
 main_rounds:
-  - repeat: 10
+  - repeat: 1
     # 小回合数
     sub_rounds:
       - decision:
