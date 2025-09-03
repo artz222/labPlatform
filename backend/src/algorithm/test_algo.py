@@ -21,7 +21,7 @@ class TestAlgorithm(BaseAlgorithm):
     """
 
     def process(
-        self, uuid, submit_logs, cur_main_round, cur_sub_round
+        self, uuid, submit_logs, cur_main_round, cur_sub_round, is_last_round
     ) -> dict[str, str]:
         return {
             "infos": [

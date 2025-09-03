@@ -524,7 +524,7 @@ class CorpsFightAlgorithm(BaseAlgorithm):
             )
             # print(f"实验日志：{submit_logs}")
         else:
-            # 最后一轮，输出最终结果
+            # 计算最终结果
             if my_role == "统帅":
                 cur_sub_round = 0
                 idx3 = cur_main_round * num_sub_rounds - 1
@@ -532,19 +532,11 @@ class CorpsFightAlgorithm(BaseAlgorithm):
                 current_score = calculate_round_score(cur_main_round - 1, streak_counts)
                 
                 result["infos"] = [
-                        ("#info_group", "历史信息"),
-                        ("前一个大回合我军得分", str(current_score[my_team])),
-                        ("前一个大回合本统帅得分", str(tongshuai_per_round.get(cur_main_round - 1, {}).get(uuid, 0))),
-                        ("前一个大回合我军战场1人数", str(count_battle(round3, my_team, "战场1"))),
-                        ("前一个大回合我军战场2人数", str(count_battle(round3, my_team, "战场2"))),
-                        ("前一个大回合敌军战场1人数", str(count_battle(round3, enemy_team, "战场1"))),
-                        ("前一个大回合敌军战场2人数", str(count_battle(round3, enemy_team, "战场2"))),
-                        ("前一个大回合本统帅最终选择", find_tongshuai_choice(uuid, cur_main_round - 1, 2)),
-                        ("#info_group", "统计信息"),
-                        ("我军累计得分", str(cumulative_scores[my_team])),
-                        ("本统帅累计得分", str(tongshuai_cumulative.get(uuid, 0))),
-                        ("当前我军战场1连胜数", str(streak_counts[my_team]["战场1"])),
-                        ("当前我军战场2连胜数", str(streak_counts[my_team]["战场2"])),
+                        ("#info_group", "最终结果"),
+                        ("我军得分", str(cumulative_scores[my_team])),
+                        ("本统帅得分", str(tongshuai_cumulative.get(uuid, 0))),
+                        ("我军战场1连胜数", str(streak_counts[my_team]["战场1"])),
+                        ("我军战场2连胜数", str(streak_counts[my_team]["战场2"])),
                                     ]
             
             elif my_role == "参谋":
@@ -556,15 +548,11 @@ class CorpsFightAlgorithm(BaseAlgorithm):
                 last_score = calculate_round_score(cur_main_round - 1, streak_counts)
                 
                 result["infos"] = [
-                        ("#info_group", "历史信息"),
-                        ("前一个大回合我军得分", str(last_score[my_team])),
-                        ("前一个大回合本参谋得分", str(canmou_per_round.get(cur_main_round - 1, {}).get(uuid, 0))),
-                        ("前一个大回合本参谋选择", advisor_decision),
-                        ("#info_group", "统计信息"),
-                        ("我军累计得分", str(cumulative_scores[my_team])),
-                        ("本参谋累计得分", str(canmou_cumulative.get(uuid, 0))),
-                        ("当前我军战场1连胜数", str(streak_counts[my_team]["战场1"])),
-                        ("当前我军战场2连胜数", str(streak_counts[my_team]["战场2"])),
+                        ("#info_group", "最终结果"),
+                        ("我军得分", str(cumulative_scores[my_team])),
+                        ("本参谋得分", str(canmou_cumulative.get(uuid, 0))),
+                        ("我军战场1连胜数", str(streak_counts[my_team]["战场1"])),
+                        ("我军战场2连胜数", str(streak_counts[my_team]["战场2"])),
                                     ]
             
             # 最后一轮也显示图表

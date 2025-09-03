@@ -568,7 +568,7 @@ class ExperimentManager:
                     )
                 await self._start_cur_round(process_result_map)
             else:
-                print("===================最后一回合数据处理====================")
+                print("===================最终数据处理====================")
                 # 保存实验日志到本地文件
                 self._save_exp_logs()
                 print("===================实验结束====================")
@@ -582,7 +582,7 @@ class ExperimentManager:
         保存实验日志
         """
 
-        # 初始化最后一个回合的消息日志
+        # 初始化最终得分的消息日志
         message_log = {}
         for uid in self.experiment_devices.keys():
             user_result = self.algorithm.process(

@@ -1,4 +1,5 @@
 ---
+lab_exp_name: corps_fight
 algorithm:
   class_name: CorpsFightAlgorithm
   module: algorithm.corps_fight_algo
@@ -22,7 +23,7 @@ hint_pics:
   - 2.png
 # 大回合数
 main_rounds:
-  - repeat: 3
+  - repeat: 2
     # 小回合数
     sub_rounds:
       - decision:
